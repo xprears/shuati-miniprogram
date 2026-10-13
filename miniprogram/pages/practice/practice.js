@@ -102,7 +102,7 @@ Page({
       q: {
         stem: q.stem,
         typeLabel: logic.TYPE_LABEL[q.type],
-        part: logic.shortPart(q.part),
+        part: logic.partLabel(q.part),
         category: q.category || '',
         wrongTag: (st && st.last === -1) ? '错过 ' + st.w + ' 次' : '',
         options: options,

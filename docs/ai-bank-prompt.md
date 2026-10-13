@@ -13,7 +13,7 @@
                         python3 build/build_bank.py ──▶ miniprogram/utils/qbank.js
 ```
 
-拿到原文的方式：PDF 用 `python3 build/extract_text.py`；Word 直接在文档里全选复制，或同样跑 `extract_text.py`（支持 `.docx`）。
+把文档交给 AI：支持读文件的模型可直接上传 PDF / Word；不方便上传时，在文档里全选复制文本粘贴也可以。
 
 ---
 

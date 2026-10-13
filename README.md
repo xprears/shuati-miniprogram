@@ -7,7 +7,7 @@
 ![界面总览](docs/screenshots/overview.png)
 
 > **本仓库不含真实题库与解析**，只带 12 道示例题（覆盖全部 7 种题型）用于跑通流程。
-> 请自备题库 —— 格式见 [题库格式](#题库格式)，生产流程见 [从 PDF / Word 生成题库](#从-pdf--word-生成题库)。
+> 请自备题库 —— 格式见 [题库格式](#题库格式)，生产流程见 [用 AI 生成题库 JSON](#用-ai-生成题库-json)。
 
 ## 界面
 
@@ -48,14 +48,11 @@ python3 build/build_bank.py
 │  ├─ utils/qbank.js           ← 构建产物（不入库，跑构建脚本生成）
 │  └─ pkg-feedback/            解析反馈分包（提交表单 + 汇总列表 + 云 SDK）
 ├─ build/
-│  ├─ extract_text.py          PDF / Word / 文本 → 纯文本
-│  ├─ extract_pdf.py           同上，只处理 PDF（旧脚本，保留兼容）
-│  ├─ parse_bank.py            纯文本 → questions.json
-│  ├─ bank_export.py           压缩与导出的唯一实现
 │  ├─ build_bank.py            ★ 一键构建：questions.json → miniprogram/utils/qbank.js
-│  ├─ merge_analysis.py        只合并解析、不重跑 PDF
+│  ├─ bank_export.py           压缩与导出的唯一实现
 │  ├─ mp-lint.js               小程序静态校验（体积 / 事件 / API 白名单）
-│  └─ sample/                  示例题库 + 示例解析
+│  ├─ sample/                  示例题库 + 示例解析
+│  └─ parse_bank.py 等         进阶（可选）：从原始 PDF / Word 文档直接解析题库
 └─ docs/
    ├─ ai-bank-prompt.md        用 AI 生成题库 JSON 的提示词
    └─ screenshots/             README 用的界面截图
@@ -160,37 +157,34 @@ build/explanations/ch2_analysis.json   # 第二章
 
 ---
 
-## 从 PDF / Word 生成题库
+## 用 AI 生成题库 JSON
+
+**题库不用手写、也不用写解析脚本**：把文档（PDF / Word / 纯文本）交给大模型，用两段提示词直接产出 `questions.json` 与解析文件。
+
+```
+题库文档（PDF / Word / 文本）
+      │── 提示词 A ──▶ build/questions.json
+      │── 提示词 B ──▶ build/explanations/ch1_analysis.json
+      ▼
+python3 build/build_bank.py ──▶ miniprogram/utils/qbank.js
+```
+
+**步骤**
+
+1. 把题库文档交给 AI（支持读文件的大模型可直接上传 PDF / Word，也可以粘贴文本）。
+2. 用**提示词 A** 生成题库，存成 `build/questions.json`（根节点是数组）。
+3. 用**提示词 B** 生成解析，存成 `build/explanations/ch1_analysis.json`（多章就 `ch2_analysis.json`、`ch3_analysis.json`…，文件名必须是 `ch<数字>_analysis.json`）。
+4. 构建：
 
 ```bash
-# 0) 依赖（只处理 PDF 时需要）
-pip install pdfplumber
-
-# 1) 原文 → 纯文本（支持 .pdf / .docx / .txt；自动找项目根目录下的文件）
-python3 build/extract_text.py
-#   → build/raw_text.txt
-
-# 2) 纯文本 → questions.json（识别「一、/第N章 题型【N题】/第N类/1、题干（答案）A. …」结构）
-python3 build/parse_bank.py
-#   → build/questions.json
-
-# 3) 注入解析 → 小程序产物
 python3 build/build_bank.py
 ```
 
-- **Word 支持**：`.docx` 用标准库解析（无需额外依赖），段落与表格都会提取；`.doc` 旧格式请先在 Word 里另存为 `.docx`。
-- **排版兜底**：原文偶有排版坏题（空位判定失灵、残题被丢弃）。把人工兜底写进 `build/bank_overrides.py`（模板见 `build/bank_overrides.example.py`），三项配置分别处理「题干末尾补空位」「空位插回句中」「残题按锚点补录」。改完重跑 `parse_bank.py`。
-- 只更新解析、不想重跑原文时：`python3 build/merge_analysis.py`
+构建脚本会校验 id 重复、题型非法、选项键断号、答案越界，并报告解析覆盖了多少题。有报错就把报错连同 JSON 片段丢回给 AI 修正。
 
-> 提示：自动解析不可能 100% 准确。跑完 `parse_bank.py` 请检查打印的「丢弃 / 异常合计 / 选项数分布」，人工抽查几十题再定稿。
+📄 **[docs/ai-bank-prompt.md](docs/ai-bank-prompt.md)** —— 两段可直接复制的完整提示词、字段规范、空位还原规则，以及「输入片段 → 正确输出」示例。
 
----
-
-## 用 AI 生成题库 JSON
-
-不想写解析脚本？把原文丢给大模型，用现成提示词产出 `questions.json` 与解析文件：
-
-📄 **[docs/ai-bank-prompt.md](docs/ai-bank-prompt.md)** —— 两段可直接复制的提示词（A：原文 → 题库 JSON；B：题库 → 解析），以及输入输出示例。
+> 拿到 JSON 后**务必抽查 10–20 题**：题干有没有被改写、答案字母有没有抄串、空位有没有还原成「（ ）」。这三处是 AI 最容易出错的地方。
 
 ---
 
