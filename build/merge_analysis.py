@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""把 build/explanations/ch*_analysis.json 的解析合入题库三份产物（不重跑 PDF 解析）。
+"""把 build/explanations/ch*_analysis.json 的解析合入题库产物（不重跑 PDF 解析）。
+
 - 读 build/questions.json -> 注入 analysis 字段 -> 回写
-- 调 bank_export.export() 重写 js/data.js 与 miniprogram/utils/qbank.js
+- 调 bank_export.export() 重写 miniprogram/utils/qbank.js
+
 用法: python3 build/merge_analysis.py
 """
 import json, os, sys
@@ -28,8 +30,7 @@ def main():
     bank_export.export(questions)
     print('题库', len(questions), '题；注入解析', len(questions) - len(miss), '条；缺', len(miss), miss[:8])
     print('解析中题库外 id:', extra[:8], ' 共', len(extra))
-    print('questions.json', os.path.getsize(QB), 'bytes |',
-          'data.js', os.path.getsize(bank_export.H5), '| qbank.js', os.path.getsize(bank_export.MP))
+    print('questions.json', os.path.getsize(QB), 'bytes | qbank.js', os.path.getsize(bank_export.MP))
 
 
 if __name__ == '__main__':

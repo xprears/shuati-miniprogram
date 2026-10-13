@@ -149,6 +149,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '应急通信刷题学习报告', path: '/pages/report/report' };
+    return { title: '刷题宝 · 学习报告', path: '/pages/report/report' };
   }
 });

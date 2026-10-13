@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""题库构建入口：把 questions.json（+ 解析）编译成两份同源产物。
+"""题库构建入口：把 questions.json（+ 解析）编译成小程序题库产物。
 
 产物：
-  js/data.js                  -> window.QBANK     （H5 版 index.html 读取）
-  miniprogram/utils/qbank.js  -> module.exports   （小程序读取）
+  miniprogram/utils/qbank.js  -> module.exports = [...]   （小程序读取）
 
 用法：
   python3 build/build_bank.py                    # 用 build/questions.json 构建
   python3 build/build_bank.py --sample           # 用内置示例题库构建（先看效果）
   python3 build/build_bank.py -i 我的题库.json    # 指定题库文件
   可选参数：
-    --no-analysis        不注入解析
-    --out-h5/--out-mp    自定义输出路径（例如输出到 /tmp 试跑）
+    --no-analysis       不注入解析
+    --out-mp            自定义输出路径（例如输出到 /tmp 试跑）
 """
 import argparse
 import glob
@@ -101,12 +100,11 @@ def validate(qs):
 
 
 def main():
-    ap = argparse.ArgumentParser(description='题库构建：questions.json -> js/data.js + miniprogram/utils/qbank.js')
+    ap = argparse.ArgumentParser(description='题库构建：questions.json -> miniprogram/utils/qbank.js')
     ap.add_argument('-i', '--input', help='题库 JSON 路径（默认 build/questions.json）')
     ap.add_argument('--sample', action='store_true', help='用 build/sample/ 内置示例题库构建')
     ap.add_argument('--no-analysis', action='store_true', help='不注入解析')
-    ap.add_argument('--out-h5', help='H5 产物输出路径（默认 js/data.js）')
-    ap.add_argument('--out-mp', help='小程序产物输出路径（默认 miniprogram/utils/qbank.js）')
+    ap.add_argument('--out-mp', help='输出路径（默认 miniprogram/utils/qbank.js）')
     a = ap.parse_args()
 
     sample = a.sample
@@ -157,15 +155,13 @@ def main():
             print('  未覆盖 %d 题（App 中该题不显示解析）：%s%s'
                   % (len(miss), ', '.join(miss[:8]), ' ...' if len(miss) > 8 else ''))
 
-    h5 = a.out_h5 or bank_export.H5
     mp = a.out_mp or bank_export.MP
-    bank_export.export(qs, h5=h5, mp=mp)
+    bank_export.export(qs, mp=mp)
 
     print('\n题型分布：' + '，'.join('%s %d' % (TYPE_CN.get(k, k), v)
                                      for k, v in Counter(q['type'] for q in qs).most_common()))
     print('产物：')
-    print('  %-34s %8.1f KB' % (rel(h5), os.path.getsize(h5) / 1024))
-    print('  %-34s %8.1f KB' % (rel(mp), os.path.getsize(mp) / 1024))
+    print('  %-38s %8.1f KB' % (rel(mp), os.path.getsize(mp) / 1024))
     print('\n小程序主包上限 2MB：解析全量注入后若逼近上限，可把题库挪进分包。')
     return 0 if not errs else 2
 

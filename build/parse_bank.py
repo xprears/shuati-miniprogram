@@ -323,8 +323,7 @@ json.dump([{"chapter":a,"qno":b,"pos":c,"stem":d} for a,b,c,d in BLANK_LOG],
           open(os.path.join(BASE, "blank_log.json"), "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 
-# ===== 同步生成 H5 / 小程序 题库（与 questions.json 同源，压缩逻辑见 bank_export.py）=====
+# ===== 同步生成小程序题库（与 questions.json 同源，压缩逻辑见 bank_export.py）=====
 import bank_export
 bank_export.export(questions)
-print("已同步:", bank_export.H5, os.path.getsize(bank_export.H5),
-      "|", bank_export.MP, os.path.getsize(bank_export.MP))
+print("已同步:", bank_export.MP, os.path.getsize(bank_export.MP))

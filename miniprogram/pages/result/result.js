@@ -82,7 +82,7 @@ Page({
   onShareAppMessage() {
     const r = store.ui.lastResult;
     return {
-      title: r && r.mode === 'exam' ? '我模考拿了 ' + r.score + ' 分' : '应急通信刷题练习完成',
+      title: r && r.mode === 'exam' ? '我模考拿了 ' + r.score + ' 分' : '刷题宝 · 练习完成',
       path: '/pages/index/index'
     };
   }

@@ -131,6 +131,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '应急通信刷题练习设置', path: '/pages/setup/setup' };
+    return { title: '刷题宝 · 练习设置', path: '/pages/setup/setup' };
   }
 });

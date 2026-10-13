@@ -395,7 +395,7 @@ Page({
 
   onShareAppMessage() {
     const p = store.S.practice;
-    return { title: p ? p.title : '应急通信刷题', path: '/pages/index/index' };
+    return { title: p ? p.title : '刷题宝', path: '/pages/index/index' };
   }
 });
 

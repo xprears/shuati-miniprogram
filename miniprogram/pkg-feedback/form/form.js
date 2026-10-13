@@ -57,6 +57,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '应急通信刷题', path: '/pages/index/index' };
+    return { title: '刷题宝', path: '/pages/index/index' };
   }
 });

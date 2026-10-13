@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""题库三份产物的统一导出器（唯一实现）。
-- compact(): questions(list[dict]) -> 压缩字段列表
-- export():   写出 js/data.js（window.QBANK）与 miniprogram/utils/qbank.js（module.exports）
+"""题库产物的统一导出器（唯一实现）。
+
 - load_analyses(): 汇总 build/explanations/ch*_analysis.json -> {id: 解析}
+- compact():       questions(list[dict]) -> 压缩字段列表
+- export():        写出 miniprogram/utils/qbank.js（module.exports）
+
 字段约定: i=id t=类型 s=题干 p=大部 c=章节 g=分类 o=选项 a=答案 r=参考答案 x=解析
 """
 import json, os, glob, re
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 EXP = os.path.join(BASE, 'explanations')
-H5 = os.path.join(BASE, '..', 'js', 'data.js')
 MP = os.path.join(BASE, '..', 'miniprogram', 'utils', 'qbank.js')
 
 
@@ -41,10 +42,9 @@ def compact(qs):
     return out
 
 
-def export(qs, h5=H5, mp=MP):
+def export(qs, mp=MP):
+    """把题库写成小程序产物（module.exports = [...]）。"""
     payload = json.dumps(compact(qs), ensure_ascii=False, separators=(",", ":"))
-    with open(h5, "w", encoding="utf-8") as f:
-        f.write("window.QBANK=" + payload + ";")
     with open(mp, "w", encoding="utf-8") as f:
         f.write("// 题库数据：%d 题（由 build/build_bank.py 生成，勿手改）\n"
                 "// 字段: i=id t=类型 s=题干 p=大部 c=章节 g=分类 o=选项 a=答案 r=参考答案 x=解析\n"

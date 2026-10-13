@@ -73,7 +73,7 @@ Page({
   onCopy() {
     const rows = this.data.list;
     if (!rows.length) return;
-    const lines = ['【应急通信题库 · 解析反馈】共 ' + rows.length + ' 条，涉及 ' + this.data.qCount + ' 道题', ''];
+    const lines = ['【刷题宝 · 解析反馈】共 ' + rows.length + ' 条，涉及 ' + this.data.qCount + ' 道题', ''];
     rows.forEach(function (r, i) {
       lines.push((i + 1) + '. 第 ' + r.no + ' 题 · ' + r.meta);
       lines.push('   题干：' + r.stem);
@@ -90,6 +90,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '应急通信刷题', path: '/pages/index/index' };
+    return { title: '刷题宝', path: '/pages/index/index' };
   }
 });

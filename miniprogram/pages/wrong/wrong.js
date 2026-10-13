@@ -96,6 +96,6 @@ Page({
   noop() {},
 
   onShareAppMessage() {
-    return { title: '应急通信错题本', path: '/pages/wrong/wrong' };
+    return { title: '刷题宝 · 错题本', path: '/pages/wrong/wrong' };
   }
 });

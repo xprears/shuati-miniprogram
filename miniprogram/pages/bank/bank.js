@@ -49,6 +49,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '应急通信理论考核题库分类', path: '/pages/bank/bank' };
+    return { title: '刷题宝 · 题库分类', path: '/pages/bank/bank' };
   }
 });

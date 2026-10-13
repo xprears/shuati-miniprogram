@@ -70,6 +70,6 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '2026应急通信技能比武理论考核刷题', path: '/pages/index/index' };
+    return { title: '刷题宝 · 题库练习', path: '/pages/index/index' };
   }
 });

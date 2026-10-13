@@ -1,5 +1,5 @@
 <view class="hero">
-  <view class="hero-title" bindlongpress="goFeedback">2026 应急通信技能比武 · 理论考核</view>
+  <view class="hero-title" bindlongpress="goFeedback">刷题宝 · 题库练习</view>
   <view class="sub">共 {{total}} 题 · {{parts}} 大分类 · {{chapters}} 个章节</view>
   <view class="hero-stats">
     <view><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>

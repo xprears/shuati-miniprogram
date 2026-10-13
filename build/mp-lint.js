@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const ROOT = '/Users/Xprears/WorkBuddy/比武小程序/miniprogram';
-const NODE = '/Users/Xprears/.workbuddy/binaries/node/versions/22.22.2-6/bin/node';
+const ROOT = path.join(__dirname, '..', 'miniprogram');
+const NODE = process.execPath;
 
 const appJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 const SUBPACKAGES = appJson.subPackages || appJson.subpackages || [];

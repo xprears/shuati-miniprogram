@@ -1,4 +1,4 @@
-/* 全局样式 —— 应急通信刷题小程序（标签规范：view/text/button，选择器全部用 class） */
+/* 全局样式 —— 刷题宝 · 题库练习小程序（标签规范：view/text/button，选择器全部用 class） */
 page {
   --primary: #1B4F9C;
   --primary-deep: #123B78;
