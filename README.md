@@ -4,8 +4,6 @@
 
 功能：顺序 / 随机练习、模拟考试、错题本、答题卡、学习报告、主观题自评、题目解析、解析反馈（云端汇总）。
 
-![界面总览](docs/screenshots/overview.png)
-
 > **本仓库不含真实题库与解析**，只带 12 道示例题（覆盖全部 7 种题型）用于跑通流程。
 
 ## 界面
@@ -22,11 +20,13 @@
 
 **三步，不用敲命令、不用装 Python —— 让 WorkBuddy 干。**
 
-### 1. 导入技能
+### 1. 安装技能
 
-把本仓库拿到本地（`git clone https://github.com/xprears/shuati-miniprogram.git`，或直接下载压缩包解压），技能就在 `.workbuddy/skills/shuati-bao/`，**用 WorkBuddy 打开这个目录即可自动生效**。
+把技能地址发给 WorkBuddy 让它安装：
 
-想让它在任何项目里都能用，把 `shuati-bao` 整个目录复制到 `~/.workbuddy/skills/` 下。
+**https://github.com/xprears/shuati-miniprogram/blob/main/skills/SKILL.md**
+
+> 手动安装也一样简单：把仓库里的 `skills/SKILL.md` 复制到 `~/.workbuddy/skills/shuati-bao/` 即可。
 
 ### 2. 把题库文件交给 WorkBuddy
 
@@ -45,7 +45,7 @@ WorkBuddy 会自己完成：拉代码 → 文档转标准题库 JSON（+ 解析 
 
 ## 技能做了什么
 
-技能说明写在 `.workbuddy/skills/shuati-bao/SKILL.md`，你不用手敲，但知道流程便于排错：
+技能说明写在 [skills/SKILL.md](skills/SKILL.md)，你不用手敲，但知道流程便于排错：
 
 ```
 你的文档（PDF / Word / 文本）
@@ -219,7 +219,7 @@ module.exports = {
 ├─ docs/
 │  ├─ ai-bank-prompt.md            AI 生成题库 / 解析的提示词
 │  └─ screenshots/                 界面截图
-└─ .workbuddy/skills/shuati-bao/   WorkBuddy 技能（用 WorkBuddy 打开本目录即生效）
+└─ skills/SKILL.md                 WorkBuddy 技能（导入即用，见「快速开始」）
 ```
 
 ---

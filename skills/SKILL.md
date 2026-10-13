@@ -17,7 +17,7 @@ description: 把题库文档（PDF / Word / 文本）变成可直接发布的微
 
 1. **当前工作目录已经是刷题宝项目**（存在 `miniprogram/` 与 `build/build_bank.js`）→ 直接用它，跳到第 1 步。
 2. **用户给了目标目录**，且里面已有项目 → 切到该目录。
-3. **都没有** → 克隆一份（在这个技能所在目录，或用户指定的工作目录下）：
+3. **都没有** → 克隆一份到用户的工作目录下：
 
 ```bash
 git clone --depth 1 https://github.com/xprears/shuati-miniprogram.git shuati-bao
@@ -25,7 +25,7 @@ git clone --depth 1 https://github.com/xprears/shuati-miniprogram.git shuati-bao
 
 克隆后所有命令都在 `shuati-bao/` 下执行。若网络不通，让用户提供仓库压缩包解压后再继续。
 
-> 如果用户是在本仓库目录里打开 WorkBuddy 的（`.workbuddy/skills/shuati-bao` 就在项目里），那第 1 条已经满足，不要重复克隆。
+> 如果用户已经打开了本仓库（技能来自本仓库的 `skills/SKILL.md`），第 1 条就满足，不要重复克隆。
 
 ---
 

@@ -15,9 +15,7 @@ miniprogram/utils/qbank.js
 miniprogram/pkg-feedback/lib/config.js
 .wbapp_*
 .wbapp_*.privacy.json
-.workbuddy/*
-!.workbuddy/skills/
-!.workbuddy/skills/**
+.workbuddy/
 .backup-*/
 
 # ============================================================
