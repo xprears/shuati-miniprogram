@@ -15,7 +15,9 @@ miniprogram/utils/qbank.js
 miniprogram/pkg-feedback/lib/config.js
 .wbapp_*
 .wbapp_*.privacy.json
-.workbuddy/
+.workbuddy/*
+!.workbuddy/skills/
+!.workbuddy/skills/**
 .backup-*/
 
 # ============================================================
@@ -28,8 +30,7 @@ node_modules/
 # 截图、调试脚本、一次性脚本）全部忽略
 # ============================================================
 build/*
-!build/bank_export.py
-!build/build_bank.py
+!build/build_bank.js
 !build/mp-lint.js
 !build/sample/
 !build/sample/**

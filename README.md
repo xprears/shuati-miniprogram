@@ -1,13 +1,12 @@
 # 刷题宝 · 题库练习小程序
 
-一份题库 JSON，编译成可以直接发布的**微信小程序**刷题应用。
+把题库文档（**PDF / Word / 文本**）变成可以直接发布的**微信小程序**刷题应用 —— 全程在 WorkBuddy 里完成，不用写代码、不用装环境。
 
 功能：顺序 / 随机练习、模拟考试、错题本、答题卡、学习报告、主观题自评、题目解析、解析反馈（云端汇总）。
 
 ![界面总览](docs/screenshots/overview.png)
 
 > **本仓库不含真实题库与解析**，只带 12 道示例题（覆盖全部 7 种题型）用于跑通流程。
-> 请自备题库 —— 格式见 [题库格式](#题库格式)，生产流程见 [用 AI 生成题库 JSON](#用-ai-生成题库-json)。
 
 ## 界面
 
@@ -19,49 +18,64 @@
 
 ---
 
-## 快速开始
+## 快速开始（推荐）
 
-```bash
-# 1) 用示例题库构建（生成 miniprogram/utils/qbank.js）
-python3 build/build_bank.py --sample
+**三步，不用敲命令、不用装 Python —— 让 WorkBuddy 干。**
 
-# 2) 用 WorkBuddy 预览并发布小程序 —— 见「部署到微信小程序」
-```
+### 1. 导入技能
 
-换成自己的题库：把题库放到 `build/questions.json`、解析放到 `build/explanations/`，跑同一条命令（不带 `--sample`）：
+把本仓库拿到本地（`git clone https://github.com/xprears/shuati-miniprogram.git`，或直接下载压缩包解压），技能就在 `.workbuddy/skills/shuati-bao/`，**用 WorkBuddy 打开这个目录即可自动生效**。
 
-```bash
-python3 build/build_bank.py
-```
+想让它在任何项目里都能用，把 `shuati-bao` 整个目录复制到 `~/.workbuddy/skills/` 下。
+
+### 2. 把题库文件交给 WorkBuddy
+
+打开 WorkBuddy，说一句：
+
+> 用刷题宝把这个题库做成小程序
+
+然后把 PDF / Word / 文本拖进对话，或直接粘贴内容。
+
+### 3. 扫码试用并发布
+
+WorkBuddy 会自己完成：拉代码 → 文档转标准题库 JSON（+ 解析 JSON）→ 生成小程序 → 拉起预览。
+点开预览卡片扫码，就能在真机上刷题。满意后点预览面板右上角 **「分享 / Share」→ 发布**。
 
 ---
 
-## 目录结构
+## 技能做了什么
+
+技能说明写在 `.workbuddy/skills/shuati-bao/SKILL.md`，你不用手敲，但知道流程便于排错：
 
 ```
-.
-├─ miniprogram/                微信小程序
-│  ├─ app.js / app.json / app.wxss
-│  ├─ pages/                   首页 · 分类 · 错题本 · 报告 · 设置 · 练习 · 结果
-│  ├─ utils/logic.js           纯逻辑：评分 / 题池 / 结构树（无 wx 依赖，可 Node 单测）
-│  ├─ utils/store.js           本地进度与错题存储
-│  ├─ utils/qbank.js           ← 构建产物（不入库，跑构建脚本生成）
-│  └─ pkg-feedback/            解析反馈分包（提交表单 + 汇总列表 + 云 SDK）
-├─ build/
-│  ├─ build_bank.py            ★ 一键构建：questions.json → miniprogram/utils/qbank.js
-│  ├─ bank_export.py           压缩与导出的唯一实现
-│  ├─ mp-lint.js               小程序静态校验（体积 / 事件 / API 白名单）
-│  └─ sample/                  示例题库 + 示例解析
-└─ docs/
-   ├─ ai-bank-prompt.md        用 AI 生成题库 JSON 的提示词
-   └─ screenshots/             README 用的界面截图
+你的文档（PDF / Word / 文本）
+   │  ① 按提示词 A 转成 build/questions.json
+   │  ② 有答案要点时按提示词 B 生成 build/explanations/ch1_analysis.json
+   ▼
+③ node build/build_bank.js   →  miniprogram/utils/qbank.js（小程序题库）
+④ node build/mp-lint.js      →  静态校验（文件齐全 / 事件 / 体积）
+⑤ WorkBuddy 拉起 miniprogram/ 预览 → 扫码 → 发布
+```
+
+`build_bank.js` 与 `mp-lint.js` 都是**零依赖 Node 脚本**（WorkBuddy 自带 Node），会校验 id 重复、题型非法、选项键断号、答案越界，并报告解析覆盖了多少题。
+
+### 想自己敲命令行
+
+只在你想手动控制时用得上：
+
+```bash
+git clone --depth 1 https://github.com/xprears/shuati-miniprogram.git
+cd shuati-miniprogram
+node build/build_bank.js --sample    # 先用示例题库看效果
+node build/build_bank.js             # 用自己的 build/questions.json
+node build/mp-lint.js                # 校验
 ```
 
 ---
 
 ## 题库格式
 
-`build/questions.json` 是一个**数组**，每个元素是一道题：
+AI 会按下面的格式产出 `build/questions.json`（一个**数组**，每个元素一道题）。想手改也照这个来：
 
 ```json
 [
@@ -96,18 +110,10 @@ python3 build/build_bank.py
 | `chapter` | ✓ | 章节，如 `第七章 单选题【120题】` |
 | `category` | ✗ | 分类标签，可为 `null` |
 | `qno` | ✗ | 原文题号（便于对照纸质卷） |
-| `analysis` | ✗ | 题目解析，一般由解析文件注入，不必手写 |
+| `analysis` | ✗ | 题目解析，由解析文件注入，不必手写 |
 
-`build/build_bank.py` 会做一遍格式校验（id 重复、题型非法、选项键不连续、答案越界等），有问题会打印出来但不中断构建。
-
-### 构建产物
-
-```
-miniprogram/utils/qbank.js   →   module.exports = [...]
-```
-
-字段被压缩：`i`=id `t`=类型 `s`=题干 `p`=大部 `c`=章节 `g`=分类 `o`=选项 `a`=答案 `r`=参考答案 `x`=解析。
-**这个文件是产物，不要手改**（下次构建即被覆盖），也已被 `.gitignore` 排除。
+构建产物 `miniprogram/utils/qbank.js` 的字段被压缩：`i`=id `t`=类型 `s`=题干 `p`=大部 `c`=章节 `g`=分类 `o`=选项 `a`=答案 `r`=参考答案 `x`=解析。
+**它是产物，不要手改**（下次构建即被覆盖），也已被 `.gitignore` 排除。
 
 ### 自定义
 
@@ -118,7 +124,7 @@ miniprogram/utils/qbank.js   →   module.exports = [...]
 
 ## 题目解析
 
-解析**单独存放**，一个 id 对应一条讲解，与题库解耦：
+解析单独存放，一个 id 对应一条讲解：
 
 ```
 build/explanations/ch1_analysis.json   # 第一章
@@ -134,14 +140,8 @@ build/explanations/ch2_analysis.json   # 第二章
 }
 ```
 
-文件名必须是 `ch<数字>_analysis.json`（`build/bank_export.py` 按此规则收集）。解析会被注入题库的 `x` 字段，App 里出现在：
-
-- 练习模式的答题反馈区（客观题答完后即时显示）
-- 主观题「查看参考答案」区
-- 自评页
-- 错题本「查看解析」弹层
-
-考试模式与「关闭即时反馈」时**不显示解析**，避免泄题。
+文件名必须是 `ch<数字>_analysis.json`。解析注入后 App 里出现在：练习模式的答题反馈区、主观题「查看参考答案」区、自评页、错题本「查看解析」弹层。
+**考试模式与「关闭即时反馈」时不显示解析**，避免泄题。
 
 ### 写作要求（直接影响 App 里的可读性）
 
@@ -152,38 +152,13 @@ build/explanations/ch2_analysis.json   # 第二章
 - **不要编造**：题干和选项之外的事实性宣称（数值、倍率、标准号）必须可追溯；追溯不到就写成「按本题库答案」的中性表述。
 - **题库答案与常识冲突时**：以题库答案为准，在解析末尾用括号注明严格的学科定义，**不要**替题库编一套自相矛盾的机理。
 
-> 解析很多时建议按章分片生产，写完后自查：解析首句是否与正确项一致、否定型题干（「不属于」「错误的是」）的解析是否给出明确否定、解析是否过短、不同题是否有逐字重复。
-
 ---
 
-## 用 AI 生成题库 JSON
+## 提示词
 
-**题库不用手写、也不用写解析脚本**：把文档（PDF / Word / 纯文本）交给大模型，用两段提示词直接产出 `questions.json` 与解析文件。
+想自己跟 AI 对话生成题库与解析，直接用现成提示词：
 
-```
-题库文档（PDF / Word / 文本）
-      │── 提示词 A ──▶ build/questions.json
-      │── 提示词 B ──▶ build/explanations/ch1_analysis.json
-      ▼
-python3 build/build_bank.py ──▶ miniprogram/utils/qbank.js
-```
-
-**步骤**
-
-1. 把题库文档交给 AI（支持读文件的大模型可直接上传 PDF / Word，也可以粘贴文本）。
-2. 用**提示词 A** 生成题库，存成 `build/questions.json`（根节点是数组）。
-3. 用**提示词 B** 生成解析，存成 `build/explanations/ch1_analysis.json`（多章就 `ch2_analysis.json`、`ch3_analysis.json`…，文件名必须是 `ch<数字>_analysis.json`）。
-4. 构建：
-
-```bash
-python3 build/build_bank.py
-```
-
-构建脚本会校验 id 重复、题型非法、选项键断号、答案越界，并报告解析覆盖了多少题。有报错就把报错连同 JSON 片段丢回给 AI 修正。
-
-📄 **[docs/ai-bank-prompt.md](docs/ai-bank-prompt.md)** —— 两段可直接复制的完整提示词、字段规范、空位还原规则，以及「输入片段 → 正确输出」示例。
-
-> 拿到 JSON 后**务必抽查 10–20 题**：题干有没有被改写、答案字母有没有抄串、空位有没有还原成「（ ）」。这三处是 AI 最容易出错的地方。
+📄 **[docs/ai-bank-prompt.md](docs/ai-bank-prompt.md)** —— 提示词 A（文档 → 题库 JSON）、提示词 B（题库 → 解析 JSON），含字段规范、空位还原规则与「输入片段 → 正确输出」示例。
 
 ---
 
@@ -193,8 +168,7 @@ python3 build/build_bank.py
 
 ### 方式 A：WorkBuddy 预览 + 发布（推荐，不用装开发者工具）
 
-1. 在 WorkBuddy 里打开本项目目录，对助手说「**预览小程序**」（或「打开小程序预览」）。
-   WorkBuddy 会识别 `miniprogram/` 并生成**小程序产物卡片**。
+1. 在 WorkBuddy 里打开本项目目录，说「**预览小程序**」——它会识别 `miniprogram/` 并生成**小程序产物卡片**。
 2. 点开卡片进入预览，用微信扫码即可在真机上试。
 3. 预览面板右上角 **「分享 / Share」→ 发布**：
    - 选「**试用小程序**」：几分钟出一个可长期使用的体验版，够内部小范围使用；
@@ -213,7 +187,7 @@ python3 build/build_bank.py
 
 1. 在 WorkBuddy 里为本项目开通云服务，建一张表（字段见 `pkg-feedback/lib/cloud.js` 里的 `row`：`question_id / qno / chapter / part / qtype / stem / kind / content / client_tag / created_at`）。
 2. 行级权限：给 `anon`、`authenticated` 开 **SELECT** 与 **INSERT** 即可（刻意不开 UPDATE / DELETE —— 小程序端删不掉数据，客户端反编译也没有破坏风险；清理由题主在后台按需删除）。
-3. 复制 `miniprogram/pkg-feedback/lib/config.example.js` 为 `config.js`，把激活返回的 `endpoint`、`publishableKey` 填进去：
+3. 复制 `miniprogram/pkg-feedback/lib/config.example.js` 为 `config.js`，填入激活返回的 `endpoint` 与 `publishableKey`：
 
 ```js
 module.exports = {
@@ -227,19 +201,45 @@ module.exports = {
 
 ---
 
+## 目录结构
+
+```
+.
+├─ miniprogram/                    微信小程序
+│  ├─ app.js / app.json / app.wxss
+│  ├─ pages/                       首页 · 分类 · 错题本 · 报告 · 设置 · 练习 · 结果
+│  ├─ utils/logic.js               纯逻辑：评分 / 题池 / 结构树（无 wx 依赖，可 Node 单测）
+│  ├─ utils/store.js               本地进度与错题存储
+│  ├─ utils/qbank.js               ← 构建产物（不入库，由技能生成）
+│  └─ pkg-feedback/                解析反馈分包（提交表单 + 汇总列表 + 云 SDK）
+├─ build/
+│  ├─ build_bank.js            ★   构建：questions.json → miniprogram/utils/qbank.js（零依赖）
+│  ├─ mp-lint.js                   小程序静态校验（体积 / 事件 / API 白名单）
+│  └─ sample/                      示例题库 + 示例解析
+├─ docs/
+│  ├─ ai-bank-prompt.md            AI 生成题库 / 解析的提示词
+│  └─ screenshots/                 界面截图
+└─ .workbuddy/skills/shuati-bao/   WorkBuddy 技能（用 WorkBuddy 打开本目录即生效）
+```
+
+---
+
 ## 常见问题
+
+**为什么仓库里没有 `miniprogram/utils/qbank.js`？**
+它是构建产物，内容就是你的题库。`.gitignore` 已排除，避免把题库误传上 GitHub。跑一次 `node build/build_bank.js --sample`（或让技能生成）就有了。
+
+**必须装 Python 吗？**
+不用。仓库里只有零依赖 Node 脚本 —— WorkBuddy 自带 Node。
 
 **主包会不会超 2MB？**
 微信小程序主包上限 2MB。题库 + 解析全部编译进 `miniprogram/utils/qbank.js`，题目多、解析长时容易逼近上限（数千题 + 全量解析可接近 1.7MB）。接近上限时把 `qbank.js` 挪进分包，或让解析按需从云端拉。`node build/mp-lint.js` 会直接报主包与各分包体积。
 
-**为什么仓库里没有 `miniprogram/utils/qbank.js`？**
-它是构建产物，内容就是你的题库。`.gitignore` 已排除，避免把题库误传上 GitHub。clone 后跑一次 `python3 build/build_bank.py --sample` 或带上自己的题库即可生成。
-
 **改了题库怎么生效？**
-`python3 build/build_bank.py` 重跑即可；小程序端在开发者工具里刷新即可看到。
+改 `build/questions.json` 后重跑 `node build/build_bank.js`；小程序端在开发者工具里刷新即可看到。
 
 **解析没显示？**
-检查 id 是否对得上（解析文件的键必须等于题库里的 `id`），以及构建时「解析：命中 N/M 题」的输出。考试模式和「关闭即时反馈」不显示解析，这是刻意设计。
+检查解析文件的键是否等于题库里的 `id`，以及构建时「解析：命中 N/M 题」的输出。考试模式和「关闭即时反馈」不显示解析，这是刻意设计。
 
 **能换成别的内容吗？**
 可以。这套东西本质是「题库 JSON → 刷题小程序」，把 `type`/`part`/`chapter` 换成你的学科结构即可；`miniprogram/utils/logic.js` 里改题型标签就能适配。
