@@ -1,0 +1,84 @@
+<view class="card">
+  <view class="card-title">学习总览</view>
+  <view class="kv-grid">
+    <view class="kv"><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
+    <view class="kv"><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
+    <view class="kv"><view class="num">{{days}}</view><view class="lbl">练习天数</view></view>
+    <view class="kv"><view class="num">{{streakN}} 天</view><view class="lbl">连续打卡</view></view>
+    <view class="kv"><view class="num">{{wrongN}}</view><view class="lbl">错题待复习</view></view>
+    <view class="kv"><view class="num">{{examN}}</view><view class="lbl">考试场次</view></view>
+  </view>
+</view>
+
+<view class="card">
+  <view class="card-title">近 14 天刷题量</view>
+  <view class="trend-chart">
+    <view wx:for="{{trend}}" wx:key="key" class="trend-col">
+      <view wx:if="{{item.n > 0}}" class="num">{{item.n}}</view>
+      <view class="bar {{item.n === 0 ? 'zero' : ''}}" style="height:{{item.n === 0 ? '2px' : (item.n / trendMax * 100 * 0.72 + 8) + '%'}}"></view>
+    </view>
+  </view>
+  <view class="trend-labels">
+    <view wx:for="{{trendLabels}}" wx:key="index">{{item}}</view>
+  </view>
+</view>
+
+<view wx:if="{{typeStats.length}}" class="card">
+  <view class="card-title">题型正确率</view>
+  <view wx:for="{{typeStats}}" wx:key="name" class="bar-row">
+    <view class="name">{{item.name}}</view>
+    <view class="track"><view style="width:{{item.pct}}%;background:{{item.color}}"></view></view>
+    <view class="val">{{item.pct}}%</view>
+  </view>
+</view>
+
+<view wx:if="{{chapterStats.length}}" class="card">
+  <view class="card-title">章节掌握度（按练习量）</view>
+  <view wx:for="{{chapterStats}}" wx:key="name" class="bar-row">
+    <view class="name">{{item.name}}</view>
+    <view class="track"><view style="width:{{item.pct}}%;background:{{item.color}}"></view></view>
+    <view class="val">{{item.pct}}%</view>
+  </view>
+</view>
+
+<view wx:if="{{weak.length}}" class="card">
+  <view class="card-title">薄弱环节（练习≥10题）</view>
+  <view wx:for="{{weak}}" wx:for-item="w" wx:for-index="wi" wx:key="full" class="weak-item {{wi === weak.length - 1 ? 'last' : ''}}">
+    <view class="rank">{{wi + 1}}</view>
+    <view class="grow">
+      <view class="t">{{w.name}}</view>
+      <view class="muted-2">已练 {{w.n}} 题</view>
+    </view>
+    <text class="tag red">{{w.pct}}%</text>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onWeakPractice" data-full="{{w.full}}">练</button>
+  </view>
+</view>
+
+<view class="card">
+  <view class="card-title">考试记录（{{examN}}）</view>
+  <block wx:if="{{history.length}}">
+    <view wx:for="{{history}}" wx:key="index" class="hist-row {{index === history.length - 1 ? 'last' : ''}}">
+      <view class="sc" style="background:{{item.bg}};color:{{item.color}}">
+        <text>{{item.score}}</text><text>分</text>
+      </view>
+      <view class="grow">
+        <view class="t">{{item.scope}} · {{item.total}}题</view>
+        <view class="d">{{item.time}} · 用时{{item.dur}}</view>
+      </view>
+    </view>
+  </block>
+  <view wx:else class="muted">还没有考试记录，去「模拟考试」试试吧</view>
+</view>
+
+<view class="card">
+  <view class="card-title">设置</view>
+  <view class="scope-item">
+    <view class="grow"><view class="t">练习模式即时反馈</view></view>
+    <view class="check {{feedback ? 'on' : ''}}" hover-class="hover" bindtap="onToggleFeedback">{{feedback ? '✓' : ''}}</view>
+  </view>
+  <view class="muted-2">关闭后，练习模式不显示即时判分，统一在结束练习时评分。</view>
+  <view class="divider"></view>
+  <button class="btn gray sm" hover-class="hover" bindtap="onClearPractice">清除进行中的练习进度</button>
+  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearWrong">清空错题本</button>
+  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onResetAll">重置所有学习数据</button>
+</view>

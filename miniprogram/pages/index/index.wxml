@@ -1,0 +1,55 @@
+<view class="hero">
+  <view class="hero-title" bindlongpress="goFeedback">2026 应急通信技能比武 · 理论考核</view>
+  <view class="sub">共 {{total}} 题 · {{parts}} 大分类 · {{chapters}} 个章节</view>
+  <view class="hero-stats">
+    <view><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
+    <view><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
+    <view><view class="num">{{wrongN}}</view><view class="lbl">错题本</view></view>
+    <view><view class="num">{{streakN}}天</view><view class="lbl">连续打卡</view></view>
+  </view>
+</view>
+
+<view wx:if="{{resume}}" class="resume-banner">
+  <view class="grow">
+    <view class="t">继续{{resume.title}}</view>
+    <view class="d">进度 {{resume.progress}} · 已答 {{resume.answered}} 题</view>
+  </view>
+  <button class="btn sm" hover-class="hover" bindtap="onResumeTap">{{resume.btn}}</button>
+</view>
+
+<view class="mode-grid">
+  <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="seq">
+    <view class="ic blue"><text>☰</text></view>
+    <view class="t">顺序练习</view>
+    <view class="d">按题库顺序刷题，即时判分</view>
+  </view>
+  <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="rand">
+    <view class="ic teal"><text>⇄</text></view>
+    <view class="t">随机练习</view>
+    <view class="d">随机抽题打乱，防止记位置</view>
+  </view>
+  <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="exam">
+    <view class="ic orange"><text>◷</text></view>
+    <view class="t">模拟考试</view>
+    <view class="d">限时答题卡交卷，自动评分</view>
+  </view>
+  <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="wrong">
+    <view class="ic red"><text>▲</text></view>
+    <view class="t">错题复习</view>
+    <view class="d">重做错题本，答对移出</view>
+  </view>
+</view>
+
+<view wx:if="{{recent.length}}" class="card">
+  <view class="card-title">最近考试</view>
+  <view wx:for="{{recent}}" wx:key="index" class="hist-row {{index === recent.length - 1 ? 'last' : ''}}">
+    <view class="sc" style="background:{{item.score >= 80 ? '#E9F8EF' : item.score >= 60 ? '#FDF3E3' : '#FDECEC'}};color:{{item.score >= 80 ? '#16A34A' : item.score >= 60 ? '#D97706' : '#DC2626'}}">
+      <text>{{item.score}}</text><text>分</text>
+    </view>
+    <view class="grow">
+      <view class="t">{{item.scope}} · {{item.total}}题</view>
+      <view class="d">{{item.time}} · 用时{{item.dur}}</view>
+    </view>
+  </view>
+  <button class="btn ghost sm" hover-class="hover" style="margin-top:10px" bindtap="goReport">查看全部学习报告</button>
+</view>

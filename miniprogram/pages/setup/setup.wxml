@@ -1,0 +1,43 @@
+<view class="card">
+  <view class="card-title">练习范围</view>
+  <view wx:if="{{isWrong}}" class="muted">当前错题本共 {{poolN}} 题。进入后按顺序重做，答对自动移出错题本。</view>
+  <view wx:else class="chip-row">
+    <view wx:for="{{scopeChips}}" wx:key="key" class="chip {{scope === item.key ? 'on' : ''}}" hover-class="hover" bindtap="onScopeTap" data-key="{{item.key}}">{{item.label}}</view>
+  </view>
+  <view wx:if="{{scope === 'custom' && !isWrong}}">
+    <view style="margin-top:10px">
+      <view wx:for="{{chapters}}" wx:key="name" class="scope-item" hover-class="hover" bindtap="onChapterTap" data-name="{{item.name}}">
+        <view class="check {{item.sel ? 'on' : ''}}">{{item.sel ? '✓' : ''}}</view>
+        <view class="grow">
+          <view class="t">{{item.name}}</view>
+          <view class="d">{{item.part}} · {{item.count}} 题</view>
+        </view>
+      </view>
+      <view wx:if="{{!chapters.length}}" class="muted-2" style="margin-top:8px">没有可选择的章节</view>
+      <view wx:if="{{chapters.length}}" class="muted-2" style="margin-top:8px">点击选择/取消章节</view>
+    </view>
+  </view>
+</view>
+
+<view class="card">
+  <view class="card-title">题型</view>
+  <view class="chip-row">
+    <view wx:for="{{types}}" wx:key="key" class="chip {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onTypeTap" data-key="{{item.key}}">{{item.label}}</view>
+  </view>
+</view>
+
+<view wx:if="{{counts.length}}" class="card">
+  <view class="card-title">题量（当前范围共 {{poolN}} 题）</view>
+  <view class="chip-row">
+    <view wx:for="{{counts}}" wx:key="n" class="count-pill {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onCountTap" data-n="{{item.n}}">{{item.label}}</view>
+  </view>
+</view>
+
+<view wx:if="{{durs.length}}" class="card">
+  <view class="card-title">考试时长</view>
+  <view class="chip-row">
+    <view wx:for="{{durs}}" wx:key="n" class="count-pill {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onDurTap" data-n="{{item.n}}">{{item.label}}</view>
+  </view>
+</view>
+
+<button class="btn" hover-class="hover" disabled="{{!poolN}}" bindtap="onStart">开始{{modeName}}（{{poolN}} 题）</button>

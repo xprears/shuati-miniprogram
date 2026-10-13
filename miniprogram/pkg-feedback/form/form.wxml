@@ -1,0 +1,25 @@
+<block wx:if="{{q}}">
+  <view class="card">
+    <view class="qmeta">
+      <text class="tag">{{q.type}}</text>
+      <text class="tag gray">第 {{q.no}} 题</text>
+      <text wx:if="{{q.chapter}}" class="tag gray">{{q.chapter}}</text>
+    </view>
+    <view class="qstem">{{q.stem}}</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">这条解析哪里有问题？</view>
+    <view class="fb-kinds">
+      <view wx:for="{{kinds}}" wx:key="k" class="fb-kind {{kind === item.k ? 'on' : ''}}" hover-class="fb-hover" bindtap="onKind" data-k="{{item.k}}">{{item.t}}</view>
+    </view>
+    <textarea class="fb-input" value="{{content}}" bindinput="onInput" maxlength="500" auto-height
+      placeholder="具体哪里不对、哪里看不懂？写得越具体，改得越准（选填）" placeholder-class="fb-ph" />
+    <view class="fb-count">{{content.length}}/500</view>
+  </view>
+
+  <view class="row">
+    <button class="btn" hover-class="hover" disabled="{{submitting}}" bindtap="onSubmit">{{submitting ? '提交中…' : '提交反馈'}}</button>
+  </view>
+  <view class="fb-tip">提交后由题主统一查看处理。同一道题可以重复反馈，不会覆盖之前的内容。</view>
+</block>

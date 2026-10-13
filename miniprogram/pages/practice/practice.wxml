@@ -1,0 +1,130 @@
+<!-- 主观题自评模式 -->
+<view wx:if="{{selfReview}}" class="card">
+  <view class="muted">客观题已自动评分。下面逐题自评主观题（{{selfReview.idx}}/{{selfReview.total}}），请对照参考答案判断自己是否掌握。</view>
+</view>
+
+<block wx:if="{{selfReview}}">
+  <view class="card">
+    <view class="qmeta"><text class="tag">{{selfReview.typeLabel}}</text></view>
+    <view class="qstem">{{selfReview.stem}}</view>
+  </view>
+  <view class="ref-box">
+    <view class="rt">参考答案</view>
+    <view>{{selfReview.reference}}</view>
+  </view>
+  <view wx:if="{{selfReview.analysis}}" class="ref-box">
+    <view class="rt">题目解析</view>
+    <view>{{selfReview.analysis}}</view>
+    <view class="ref-actions">
+      <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{selfReview.qid}}">解析反馈</button>
+    </view>
+  </view>
+  <view class="row">
+    <button class="btn green" hover-class="hover" bindtap="onSelfReviewJudge" data-v="1">✓ 掌握了</button>
+    <button class="btn" hover-class="hover" bindtap="onSelfReviewJudge" data-v="-1">✗ 未掌握</button>
+  </view>
+</block>
+
+<!-- 答题模式 -->
+<block wx:else>
+  <view wx:if="{{isExam}}" class="exam-bar {{examUrgent ? 'urgent' : ''}}">
+    <text>剩余时间 {{examLeft}}</text>
+  </view>
+
+  <view class="card">
+    <view class="qmeta">
+      <text class="tag">{{q.typeLabel}}</text>
+      <text class="tag gray">{{q.part}}</text>
+      <text wx:if="{{q.category}}" class="tag gray">{{q.category}}</text>
+      <text wx:if="{{q.wrongTag}}" class="tag red">{{q.wrongTag}}</text>
+    </view>
+    <view class="qstem">{{q.stem}}</view>
+  </view>
+
+  <!-- 客观题选项 -->
+  <block wx:if="{{!q.isSubj}}">
+    <view wx:for="{{q.options}}" wx:key="key" class="opt {{item.cls}}" hover-class="{{item.hover}}" bindtap="onOption" data-key="{{item.key}}">
+      <view class="key">{{item.key}}</view>
+      <view class="txt">{{item.text}}</view>
+    </view>
+  </block>
+
+  <!-- 主观题 -->
+  <block wx:else>
+    <view wx:if="{{showRef && q.reference}}" class="ref-box">
+      <view class="rt">参考答案</view>
+      <view>{{q.reference}}</view>
+    </view>
+    <view wx:if="{{showRef && q.analysis}}" class="ref-box">
+      <view class="rt">题目解析</view>
+      <view>{{q.analysis}}</view>
+      <view class="ref-actions">
+        <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{qid}}">解析反馈</button>
+      </view>
+    </view>
+    <view class="card">
+      <button class="btn ghost" hover-class="hover" bindtap="onToggleRef">{{showRef ? '收起参考答案' : '查看参考答案'}}</button>
+      <view wx:if="{{feedbackOn}}" class="row" style="margin-top:10px">
+        <button class="btn {{fb === 1 ? 'green' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="1">{{fb === 1 ? '✓ 已掌握' : '标记掌握'}}</button>
+        <button class="btn {{fb === -1 ? '' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="-1">{{fb === -1 ? '✗ 未掌握' : '标记未掌握'}}</button>
+      </view>
+    </view>
+  </block>
+
+  <!-- 即时反馈 -->
+  <view wx:if="{{feedbackOn && fb !== null && !q.isSubj}}" class="feedback {{fb === 1 ? 'right' : 'wrong'}}">
+    <view class="ft">{{fbTitle}}</view>
+    <view>{{fbText}}</view>
+  </view>
+
+  <!-- 题目解析（客观题答完即时展示；考试模式与关闭反馈时不展示，避免泄题） -->
+  <view wx:if="{{feedbackOn && fb !== null && !q.isSubj && q.analysis}}" class="ref-box">
+    <view class="rt">题目解析</view>
+    <view>{{q.analysis}}</view>
+    <view class="ref-actions">
+      <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{qid}}">解析反馈</button>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="qfoot">
+    <button wx:if="{{idx > 1}}" class="btn gray" hover-class="hover" bindtap="onPrev">上一题</button>
+    <button wx:if="{{isExam}}" class="btn gray" hover-class="hover" bindtap="onFlag">{{a.flag ? '取消标记' : '标记疑题'}}</button>
+    <button wx:if="{{!q.isSubj && q.options.length && fb === null && feedbackOn && isMulti}}" class="btn" hover-class="hover" disabled="{{!a.sel.length}}" bindtap="submitCurrent">提交答案</button>
+    <button class="btn" hover-class="hover" bindtap="onNext">
+      {{isExam ? (idx >= total ? '交卷' : '下一题') : (fb !== null ? (idx >= total ? '完成练习' : '下一题') : (feedbackOn ? (idx >= total ? '完成' : '跳过') : (idx >= total ? '完成练习' : '下一题')))}}
+    </button>
+  </view>
+
+  <view class="nav-actions">
+    <button class="btn ghost" hover-class="hover" bindtap="onOpenAcard">答题卡（已答 {{acardAnswered}}）</button>
+    <button class="btn gray" hover-class="hover" bindtap="onBackTap">退出练习</button>
+  </view>
+
+  <!-- 答题卡浮层 -->
+  <view wx:if="{{acardOpen}}" class="acard-mask" bindtap="onCloseAcard">
+    <view class="acard-sheet" catchtap="noop">
+      <view class="acard-head">
+        <view class="t">答题卡</view>
+        <button class="btn sm gray" hover-class="hover" bindtap="onCloseAcard">关闭</button>
+      </view>
+      <scroll-view scroll-y class="acard-body">
+        <view class="muted-2">已答 {{acardAnswered}} / {{total}}{{acardFlagged ? ' · 标记 ' + acardFlagged : ''}}</view>
+        <view class="acard-legend">
+          <view class="lg"><view class="dot" style="background:#F0F3F8"></view>未答</view>
+          <view class="lg"><view class="dot" style="background:#1B4F9C"></view>已答</view>
+          <view class="lg"><view class="dot" style="background:#D97706"></view>标记</view>
+          <view class="lg"><view class="dot" style="background:#E9F8EF;border:1px solid #16A34A"></view>答对</view>
+          <view class="lg"><view class="dot" style="background:#FDECEC;border:1px solid #DC2626"></view>答错</view>
+        </view>
+        <view class="acard-grid">
+          <view wx:for="{{acardCells}}" wx:key="n" class="acell {{item.cls}}" hover-class="hover" bindtap="onJumpCell" data-i="{{index}}">{{item.n}}</view>
+        </view>
+      </scroll-view>
+      <view class="acard-foot">
+        <button wx:if="{{isExam}}" class="btn" hover-class="hover" bindtap="onSubmitExam">交卷</button>
+        <button wx:else class="btn" hover-class="hover" bindtap="onFinishFromAcard">结束练习</button>
+      </view>
+    </view>
+  </view>
+</block>

@@ -1,0 +1,32 @@
+<view class="card">
+  <view class="card-title">解析反馈汇总</view>
+  <view class="kv-grid">
+    <view class="kv"><text class="num">{{total}}</text><view class="lbl">反馈条数</view></view>
+    <view class="kv"><text class="num">{{qCount}}</text><view class="lbl">涉及题目</view></view>
+  </view>
+  <view class="row" style="margin-top:11px">
+    <button class="btn ghost" hover-class="hover" disabled="{{loading}}" bindtap="onReload">{{loading ? '加载中…' : '刷新'}}</button>
+    <button class="btn" hover-class="hover" disabled="{{!total}}" bindtap="onCopy">复制全部</button>
+  </view>
+</view>
+
+<view wx:if="{{hint}}" class="fb-hint">{{hint}}</view>
+
+<view wx:if="{{!loading && !total}}" class="empty">
+  <view class="ic">▲</view>
+  <view>还没有反馈</view>
+  <view class="muted-2">大家刷题时点「解析反馈」提交的问题，都会汇总到这里</view>
+</view>
+
+<view wx:for="{{list}}" wx:key="id" class="fb-row">
+  <view class="head">
+    <text class="tag {{item.kindCls}}">{{item.kindText}}</text>
+    <text class="tag gray">第 {{item.no}} 题</text>
+  </view>
+  <view class="stem">{{item.stem}}</view>
+  <view wx:if="{{item.content}}" class="content">{{item.content}}</view>
+  <view class="meta">
+    <text class="grow">{{item.meta}}</text>
+    <text>{{item.time}}</text>
+  </view>
+</view>

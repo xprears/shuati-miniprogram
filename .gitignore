@@ -1,0 +1,46 @@
+# ============================================================
+# 私有数据：题库 / 解析 / 原始 PDF —— 绝不入库
+# ============================================================
+*.pdf
+build/raw_text.txt
+build/questions.json
+build/explanations/
+build/blank_log.json
+build/diag_blank.json
+js/data.js
+miniprogram/utils/qbank.js
+
+# ============================================================
+# 云服务凭据 / WorkBuddy 本地产物
+# ============================================================
+miniprogram/pkg-feedback/lib/config.js
+.wbapp_*
+.wbapp_*.privacy.json
+.workbuddy/
+.backup-*/
+
+# ============================================================
+# 依赖
+# ============================================================
+node_modules/
+
+# ============================================================
+# build/ 采用白名单：只放工具链与示例，其余（题库、解析、
+# 截图、调试脚本、一次性脚本）全部忽略
+# ============================================================
+build/*
+!build/extract_pdf.py
+!build/parse_bank.py
+!build/bank_export.py
+!build/build_bank.py
+!build/merge_analysis.py
+!build/bank_overrides.example.py
+!build/mp-lint.js
+!build/sample/
+!build/sample/**
+
+# ============================================================
+# 系统
+# ============================================================
+.DS_Store
+Thumbs.db

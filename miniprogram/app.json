@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bank/bank",
+    "pages/wrong/wrong",
+    "pages/report/report",
+    "pages/setup/setup",
+    "pages/practice/practice",
+    "pages/result/result"
+  ],
+  "subPackages": [
+    {
+      "root": "pkg-feedback",
+      "name": "feedback",
+      "pages": [
+        "form/form",
+        "list/list"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1B4F9C",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "应急通信刷题",
+    "backgroundColor": "#F4F6FA",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#93A0B4",
+    "selectedColor": "#1B4F9C",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "assets/tab-home.png", "selectedIconPath": "assets/tab-home-on.png" },
+      { "pagePath": "pages/bank/bank", "text": "分类", "iconPath": "assets/tab-bank.png", "selectedIconPath": "assets/tab-bank-on.png" },
+      { "pagePath": "pages/wrong/wrong", "text": "错题本", "iconPath": "assets/tab-wrong.png", "selectedIconPath": "assets/tab-wrong-on.png" },
+      { "pagePath": "pages/report/report", "text": "报告", "iconPath": "assets/tab-report.png", "selectedIconPath": "assets/tab-report-on.png" }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,61 @@
+<view wx:if="{{!total}}" class="empty">
+  <view class="ic">▲</view>
+  <view>错题本是空的</view>
+  <view class="muted-2">练习和考试中答错的题会自动出现在这里</view>
+</view>
+
+<block wx:if="{{total}}">
+  <view class="card">
+    <view class="card-title">共 {{total}} 道错题</view>
+    <view class="row">
+      <button class="btn" hover-class="hover" bindtap="onRedo" data-mode="seq">顺序重做</button>
+      <button class="btn ghost" hover-class="hover" bindtap="onRedo" data-mode="rand">随机重做</button>
+    </view>
+    <button class="btn gray sm" hover-class="hover" style="margin-top:10px" bindtap="onClear">清空错题本</button>
+  </view>
+
+  <view wx:for="{{list}}" wx:key="id" class="wrong-row">
+    <view class="head">
+      <text class="tag">{{item.type}}</text>
+      <view class="grow">{{item.stem}}</view>
+    </view>
+    <view class="meta">
+      <text>{{item.meta}}</text>
+      <text>错 {{item.wrongN}} 次</text>
+    </view>
+    <view class="chapter-actions">
+      <button class="btn ghost sm" hover-class="hover" bindtap="onDetail" data-id="{{item.id}}">查看解析</button>
+      <button class="btn gray sm" hover-class="hover" bindtap="onRemove" data-id="{{item.id}}">移出</button>
+    </view>
+  </view>
+</block>
+
+<view wx:if="{{detail}}" class="detail-mask" bindtap="onCloseDetail">
+  <view class="detail-sheet" catchtap="noop">
+    <view class="detail-head">
+      <view class="t">题目解析</view>
+      <button class="btn sm gray" hover-class="hover" bindtap="onCloseDetail">关闭</button>
+    </view>
+    <scroll-view scroll-y class="detail-body">
+      <view class="qstem">{{detail.stem}}</view>
+      <view wx:if="{{detail.options.length}}" style="margin-top:12px">
+        <view wx:for="{{detail.options}}" wx:key="key" class="opt {{item.isAns ? 'correct locked' : 'locked'}}">
+          <view class="key">{{item.key}}</view>
+          <view class="txt">{{item.text}}{{item.isAns ? ' ✓' : ''}}</view>
+        </view>
+      </view>
+      <view wx:if="{{detail.options.length}}" class="muted" style="margin-top:4px">正确答案：{{detail.ansText}}</view>
+      <view wx:if="{{detail.hasRef}}" class="ref-box" style="margin-top:12px">
+        <view class="rt">参考答案</view>
+        <view>{{detail.reference}}</view>
+      </view>
+      <view wx:if="{{detail.hasAnalysis}}" class="ref-box" style="margin-top:12px">
+        <view class="rt">题目解析</view>
+        <view>{{detail.analysis}}</view>
+        <view class="ref-actions">
+          <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{detail.id}}">解析反馈</button>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

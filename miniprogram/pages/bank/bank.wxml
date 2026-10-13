@@ -1,0 +1,30 @@
+<view class="card">
+  <view class="card-title">分类管理</view>
+  <view class="muted">点击眼睛图标隐藏/显示章节，隐藏的章节不参与所有练习与考试。每章可直接开始顺序或随机练习。</view>
+</view>
+
+<view wx:for="{{parts}}" wx:key="index" class="part-block">
+  <view class="part-name">
+    <text>{{item.name}}</text>
+    <text class="count">{{item.count}} 题</text>
+  </view>
+  <view wx:for="{{item.chapters}}" wx:for-item="ch" wx:for-index="ci" wx:key="name" class="chapter-row {{ch.hidden ? 'dim' : ''}}">
+    <view class="head">
+      <view class="grow">
+        <view class="t">{{ch.name}}</view>
+        <view class="sub">{{ch.sub}}</view>
+      </view>
+      <view class="eye-btn {{ch.hidden ? 'off' : ''}}" hover-class="hover" bindtap="onEyeTap" data-name="{{ch.name}}">
+        <text>{{ch.hidden ? '隐' : '显'}}</text>
+      </view>
+    </view>
+    <view class="mini-stats">
+      <view>已练 <text class="num">{{ch.done}}/{{ch.count}}</text></view>
+      <view>正确率 <text class="num">{{ch.acc}}</text></view>
+    </view>
+    <view class="chapter-actions">
+      <button class="btn" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="seq">顺序练习</button>
+      <button class="btn ghost" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="rand">随机练习</button>
+    </view>
+  </view>
+</view>

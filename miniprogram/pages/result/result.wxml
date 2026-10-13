@@ -1,0 +1,41 @@
+<view class="card score-hero">
+  <view class="num">{{bigNum}}</view>
+  <view class="lbl">{{bigLbl}}</view>
+  <view wx:if="{{isExam}}" class="verdict {{verdictCls}}">{{verdict}}</view>
+</view>
+
+<view class="card">
+  <view class="kv-grid">
+    <view wx:for="{{kvs}}" wx:key="label" class="kv">
+      <view class="num">{{item.value}}</view>
+      <view class="lbl">{{item.label}}</view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{breakdown.length}}" class="card">
+  <view class="card-title">题型分布</view>
+  <view wx:for="{{breakdown}}" wx:key="name" class="bar-row">
+    <view class="name">{{item.name}}</view>
+    <view class="track"><view style="width:{{item.pct}}%;background:{{item.color}}"></view></view>
+    <view class="val">{{item.val}}</view>
+  </view>
+</view>
+
+<view wx:if="{{wrongList.length}}" class="card">
+  <view class="card-title">错题回顾（{{wrongList.length + wrongMore}}）</view>
+  <view wx:for="{{wrongList}}" wx:key="no" class="result-row {{index === wrongList.length - 1 ? 'last' : ''}}">
+    <view class="no">{{item.no}}</view>
+    <view class="grow">{{item.stem}}</view>
+    <view class="st">✗</view>
+  </view>
+  <view wx:if="{{wrongMore > 0}}" class="muted-2">还有 {{wrongMore}} 题，见错题本</view>
+</view>
+
+<view class="card">
+  <view class="row">
+    <button class="btn" hover-class="hover" bindtap="onAgain">{{isExam ? '再考一次' : '再练一轮'}}</button>
+    <button class="btn ghost" hover-class="hover" bindtap="onGoWrong">去刷错题</button>
+  </view>
+  <button class="btn gray" hover-class="hover" style="margin-top:10px" bindtap="onGoHome">返回首页</button>
+</view>

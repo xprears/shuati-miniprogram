@@ -1,0 +1,28 @@
+{
+  "description": "2026全国应急通信技能比武理论考核刷题小程序",
+  "appid": "touristappid",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "libVersion": "3.8.12",
+  "projectname": "yingjitongxin-shuati",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "coverView": true,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": false,
+    "scopeDataCheck": false,
+    "useCompilerPlugins": false
+  },
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}
