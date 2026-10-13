@@ -51,8 +51,7 @@ python3 build/build_bank.py
 │  ├─ build_bank.py            ★ 一键构建：questions.json → miniprogram/utils/qbank.js
 │  ├─ bank_export.py           压缩与导出的唯一实现
 │  ├─ mp-lint.js               小程序静态校验（体积 / 事件 / API 白名单）
-│  ├─ sample/                  示例题库 + 示例解析
-│  └─ parse_bank.py 等         进阶（可选）：从原始 PDF / Word 文档直接解析题库
+│  └─ sample/                  示例题库 + 示例解析
 └─ docs/
    ├─ ai-bank-prompt.md        用 AI 生成题库 JSON 的提示词
    └─ screenshots/             README 用的界面截图

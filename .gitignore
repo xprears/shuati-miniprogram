@@ -28,13 +28,8 @@ node_modules/
 # 截图、调试脚本、一次性脚本）全部忽略
 # ============================================================
 build/*
-!build/extract_pdf.py
-!build/extract_text.py
-!build/parse_bank.py
 !build/bank_export.py
 !build/build_bank.py
-!build/merge_analysis.py
-!build/bank_overrides.example.py
 !build/mp-lint.js
 !build/sample/
 !build/sample/**
