@@ -120,6 +120,20 @@ AI 会按下面的格式产出 `build/questions.json`（一个**数组**，每�
 - 题型标签、题池规则：`miniprogram/utils/logic.js`（`TYPE_LABEL` / `TYPE_ORDER` / `poolIds`）
 - 配色与标题：`miniprogram/app.wxss`、`miniprogram/app.json`（`navigationBarTitleText` 与 `tabBar`）
 
+#### 命名口径（改动前先看这里）
+
+「刷题宝」是**产品名**，「××题库」是**内容名**，两者分工固定，不要混用：
+
+| 位置 | 写什么 | 改哪里 |
+| --- | --- | --- |
+| 导航栏标题 | 产品名（刷题宝） | `app.json` 的 `navigationBarTitleText`、`pages/index/index.json` |
+| 分享文案 | 产品名（刷题宝） | 各页 `onShareAppMessage` 的 `title` |
+| 首页 hero 大标题 | **题库名**（题库全称，如「2026年全国应急通信技能比武理论考核题库」） | `pages/index/index.wxml` 的 `.hero-title` |
+| 题库内容本身 | 题库名 | `build/questions.json`、PDF 原件 |
+
+> 题库名只有一个出处：题库原件（PDF/Word）的标题。改 hero 时以原件为准，不要从产品名反推。
+> hero 标题是长全称，`app.wxss` 里 `.hero .hero-title` 的字号按「单行放得下」调过（15px），换更长的题库名要重新核一下宽度。
+
 ---
 
 ## 题目解析
