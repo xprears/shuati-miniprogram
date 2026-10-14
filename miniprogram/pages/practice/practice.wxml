@@ -65,7 +65,7 @@
     <view class="card">
       <button class="btn ghost" hover-class="hover" bindtap="onToggleRef">{{showRef ? '收起参考答案' : '查看参考答案'}}</button>
       <view wx:if="{{feedbackOn}}" class="row" style="margin-top:10px">
-        <button class="btn {{fb === 1 ? 'green' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="1">{{fb === 1 ? '✓ 已掌握' : '标记掌握'}}</button>
+        <button class="btn {{fb === 1 ? 'green' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="1">{{fb === 1 ? '✓ 已掌握' : '标记已掌握'}}</button>
         <button class="btn {{fb === -1 ? '' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="-1">{{fb === -1 ? '✗ 未掌握' : '标记未掌握'}}</button>
       </view>
     </view>
@@ -99,6 +99,12 @@
   <view class="nav-actions">
     <button class="btn ghost" hover-class="hover" bindtap="onOpenAcard">答题卡（已答 {{acardAnswered}}）</button>
     <button class="btn gray" hover-class="hover" bindtap="onBackTap">退出练习</button>
+  </view>
+
+  <!-- 掌握度标记：紧接答题卡一行（答完即可标记，已掌握降权、未掌握视同错题） -->
+  <view wx:if="{{canMark}}" class="mark-row">
+    <button class="btn {{mkM ? 'green' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="1">{{mkM ? '✓ 已掌握' : '标记已掌握'}}</button>
+    <button class="btn {{mkU ? '' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="-1">{{mkU ? '✗ 未掌握' : '标记未掌握'}}</button>
   </view>
 
   <!-- 答题卡浮层 -->

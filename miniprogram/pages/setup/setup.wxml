@@ -1,6 +1,6 @@
 <view class="card">
   <view class="card-title">练习范围</view>
-  <view wx:if="{{isWrong}}" class="muted">当前错题本共 {{poolN}} 题。进入后按顺序重做，答对自动移出错题本。</view>
+  <view wx:if="{{isWrong}}" class="muted">当前未掌握清单共 {{poolN}} 题。进入后按顺序重做，答对自动移出。</view>
   <view wx:else class="chip-row">
     <view wx:for="{{scopeChips}}" wx:key="key" class="chip {{scope === item.key ? 'on' : ''}}" hover-class="hover" bindtap="onScopeTap" data-key="{{item.key}}">{{item.label}}</view>
   </view>
@@ -31,6 +31,7 @@
   <view class="chip-row">
     <view wx:for="{{counts}}" wx:key="n" class="count-pill {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onCountTap" data-n="{{item.n}}">{{item.label}}</view>
   </view>
+  <view wx:if="{{mode === 'rand'}}" class="muted-2" style="margin-top:10px">随机练习按掌握度加权：未掌握 ×4、没做过 ×2、已掌握 ×1。</view>
 </view>
 
 <view wx:if="{{durs.length}}" class="card">

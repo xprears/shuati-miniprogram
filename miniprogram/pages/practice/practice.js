@@ -19,6 +19,10 @@ Page({
     title: '',
     idx: 0,
     total: 0,
+    // 掌握度标记（非考试模式、已判分后可用）
+    canMark: false,
+    mkM: false,
+    mkU: false,
     // 考试
     examLeft: '',
     examUrgent: false,
@@ -92,10 +96,14 @@ Page({
         : q.type === 'single' ? q.answer
         : q.answer.split('').join('、');
       if (fb === 1) { fbTitle = '✓ 回答正确'; fbText = '正确答案：' + ansText; }
-      else { fbTitle = '✗ 回答错误'; fbText = '正确答案：' + ansText + '，已自动收入错题本'; }
+      else { fbTitle = '✗ 回答错误'; fbText = '正确答案：' + ansText + '，已自动收入未掌握'; }
     }
 
     const ac = this.buildAcard();
+
+    // 掌握度标记：仅非考试模式、判分后才允许（主观题由自评按钮标记）
+    const mkM = store.isMastered(q.id);
+    const mkU = !!(store.S.wrong[q.id]);
 
     this.setData({
       qid: q.id,
@@ -122,6 +130,10 @@ Page({
       idx: p.idx + 1,
       total: p.ids.length,
       selfReview: null,
+      // 判分后（或关闭反馈时答完）都可标记；主观题走自评按钮，考试模式不给标记
+      canMark: !isExam && !q.isSubj && (fb !== null || (!feedbackOn && a.sel.length > 0)),
+      mkM: mkM,
+      mkU: mkU,
       acardCells: ac.cells,
       acardAnswered: ac.answered,
       acardFlagged: ac.flagged
@@ -183,8 +195,25 @@ Page({
     const v = Number(e.currentTarget.dataset.v);
     p.fb[q.id] = v;
     store.recordAnswer(q.id, v === 1);
-    if (v === 1) store.removeWrong(q.id); else store.addWrong(q.id);
+    if (v === 1) store.markMastered(q.id); else store.markUnmastered(q.id);
     store.save();
+    this.renderQuestion();
+  },
+
+  /* 掌握度标记：已掌握 → 降权并移出未掌握；未掌握 → 视同错题入库 */
+  onMark(e) {
+    const p = store.S.practice;
+    if (!p) return;
+    const id = e.currentTarget.dataset.id || this.data.qid;
+    const v = Number(e.currentTarget.dataset.v);
+    if (!id) return;
+    if (v === 1) {
+      store.markMastered(id);
+      wx.showToast({ title: '已标记掌握，出现概率降低', icon: 'none' });
+    } else {
+      store.markUnmastered(id);
+      wx.showToast({ title: '已收入未掌握', icon: 'none' });
+    }
     this.renderQuestion();
   },
 

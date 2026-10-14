@@ -7,7 +7,8 @@ function defaultState() {
   return {
     v: 1,
     qs: {},         // qid -> {r,w,last,at}
-    wrong: {},      // qid -> {n,at,last}
+    wrong: {},      // qid -> {n,at,last}  未掌握（错题本）
+    mastered: {},   // qid -> ts           已掌握（抽题降权）
     hidden: {},     // chapter -> true
     practice: null, // 进行中的练习会话
     history: [],
@@ -39,6 +40,7 @@ function init() {
       var d = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (d && d.v === 1) Object.assign(S, d);
     }
+    if (!S.mastered) S.mastered = {};   // 旧存档（无 mastered 字段）兜底
   } catch (e) { console.warn('状态读取失败', e); }
 }
 
@@ -68,14 +70,69 @@ function addWrong(qid) {
 function removeWrong(qid) { delete S.wrong[qid]; save(); }
 function wrongCount() { return Object.keys(S.wrong).length; }
 
+/* ---------- 掌握度标记 ----------
+ * 「未掌握」沿用 wrong 表（错题本），手动点「未掌握」即入库；
+ * 「已掌握」记 mastered 表，抽题时权重降低。答错自动入库，答对自动出库。
+ */
+function markUnmastered(qid) {
+  // 手动标记不累加「答错次数」（n 仅在真正答错时 +1），已有记录保留原 n
+  var w = S.wrong[qid];
+  if (w) w.last = Date.now();
+  else S.wrong[qid] = { n: 0, at: Date.now(), last: Date.now() };
+  if (S.mastered[qid]) delete S.mastered[qid];
+  save();
+}
+function markMastered(qid) {
+  S.mastered[qid] = Date.now();
+  if (S.wrong[qid]) delete S.wrong[qid];
+  save();
+}
+function isMastered(qid) { return !!S.mastered[qid]; }
+function masteredCount() { return Object.keys(S.mastered).length; }
+
+/* 抽题权重：未掌握 4 / 未作答 2 / 已掌握 1 */
+function weightOf(qid) {
+  if (S.wrong[qid]) return 4;
+  if (S.mastered[qid]) return 1;
+  return 2;
+}
+
+/* 加权不放回抽样：按权重把 id 重复投进池子再洗牌去重，权重高的更靠前 */
+function weightedPick(ids, n) {
+  var bag = [];
+  for (var i = 0; i < ids.length; i++) {
+    var w = weightOf(ids[i]);
+    for (var k = 0; k < w; k++) bag.push(ids[i]);
+  }
+  var sh = logic.shuffle(bag);
+  var seen = {}, out = [];
+  for (var j = 0; j < sh.length && out.length < n; j++) {
+    if (seen[sh[j]]) continue;
+    seen[sh[j]] = 1;
+    out.push(sh[j]);
+  }
+  // 池子被去重后不足 n（理论上不会，权重≥1 保证 bag ≥ ids），兜底补齐
+  if (out.length < n) {
+    for (var m = 0; m < ids.length && out.length < n; m++) {
+      if (!seen[ids[m]]) { seen[ids[m]] = 1; out.push(ids[m]); }
+    }
+  }
+  return out;
+}
+
 /* ---------- 练习会话 ---------- */
 function startPractice(mode, pool) {
   var ids = pool.slice();
-  if (mode === 'rand' || mode === 'exam') ids = logic.shuffle(ids);
-  var limit = (mode === 'rand' || mode === 'exam') ? Math.min(ui.setupCount, ids.length) : ids.length;
-  ids = ids.slice(0, limit);
+  if (mode === 'rand') {
+    // 随机练习按掌握度加权抽题：已掌握的出现更少，未掌握/错题出现更多
+    ids = weightedPick(ids, Math.min(ui.setupCount, ids.length));
+  } else if (mode === 'exam') {
+    ids = logic.shuffle(ids).slice(0, Math.min(ui.setupCount, ids.length));
+  } else {
+    ids = ids.slice(0, ids.length);
+  }
 
-  var scopeLabel = mode === 'wrong' ? '错题本'
+  var scopeLabel = mode === 'wrong' ? '未掌握题'
     : ui.setupScope === 'all' ? '全部题库'
     : ui.setupScope === 'general' ? '通用题'
     : '自选章节';
@@ -212,6 +269,7 @@ function onExamTimeout() {
 module.exports = {
   S, ui, init, save,
   recordAnswer, addWrong, removeWrong, wrongCount,
+  markUnmastered, markMastered, isMastered, masteredCount, weightedPick,
   startPractice, finishPractice, finalizePracticeResults,
   gradeExam, submitSelfReview, finishExam, onExamTimeout
 };

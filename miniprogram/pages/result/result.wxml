@@ -23,19 +23,19 @@
 </view>
 
 <view wx:if="{{wrongList.length}}" class="card">
-  <view class="card-title">错题回顾（{{wrongList.length + wrongMore}}）</view>
+  <view class="card-title">未掌握回顾（{{wrongList.length + wrongMore}}）</view>
   <view wx:for="{{wrongList}}" wx:key="no" class="result-row {{index === wrongList.length - 1 ? 'last' : ''}}">
     <view class="no">{{item.no}}</view>
     <view class="grow">{{item.stem}}</view>
     <view class="st">✗</view>
   </view>
-  <view wx:if="{{wrongMore > 0}}" class="muted-2">还有 {{wrongMore}} 题，见错题本</view>
+  <view wx:if="{{wrongMore > 0}}" class="muted-2">还有 {{wrongMore}} 题，见「未掌握」</view>
 </view>
 
 <view class="card">
   <view class="row">
     <button class="btn" hover-class="hover" bindtap="onAgain">{{isExam ? '再考一次' : '再练一轮'}}</button>
-    <button class="btn ghost" hover-class="hover" bindtap="onGoWrong">去刷错题</button>
+    <button class="btn ghost" hover-class="hover" bindtap="onGoWrong">去练未掌握</button>
   </view>
   <button class="btn gray" hover-class="hover" style="margin-top:10px" bindtap="onGoHome">返回首页</button>
 </view>

@@ -4,6 +4,7 @@ const logic = require('../../utils/logic.js');
 Page({
   data: {
     total: 0,
+    masteredN: 0,
     list: [],
     detail: null
   },
@@ -23,13 +24,13 @@ Page({
         wrongN: w.n
       };
     });
-    this.setData({ total: ids.length, list: list, detail: null });
+    this.setData({ total: ids.length, masteredN: store.masteredCount(), list: list, detail: null });
   },
 
   onRedo(e) {
     const mode = e.currentTarget.dataset.mode;
     const ids = Object.keys(store.S.wrong);
-    if (!ids.length) { wx.showToast({ title: '错题本为空', icon: 'none' }); return; }
+    if (!ids.length) { wx.showToast({ title: '未掌握列表为空', icon: 'none' }); return; }
     store.startPractice('wrong', mode === 'rand' ? logic.shuffle(ids) : ids);
     wx.navigateTo({ url: '/pages/practice/practice' });
   },
@@ -37,7 +38,7 @@ Page({
   onClear() {
     wx.showModal({
       title: '提示',
-      content: '确定清空错题本？该操作不可恢复。',
+      content: '确定清空未掌握列表？该操作不可恢复。',
       confirmText: '清空',
       confirmColor: '#DC2626',
       success: (res) => {
@@ -45,6 +46,23 @@ Page({
           store.S.wrong = {};
           store.save();
           wx.showToast({ title: '已清空', icon: 'none' });
+          this.onShow();
+        }
+      }
+    });
+  },
+
+  onClearMastered() {
+    wx.showModal({
+      title: '提示',
+      content: '清除全部「已掌握」标记？这些题之后会恢复正常出现概率。',
+      confirmText: '清除',
+      confirmColor: '#DC2626',
+      success: (res) => {
+        if (res.confirm) {
+          store.S.mastered = {};
+          store.save();
+          wx.showToast({ title: '已清除', icon: 'none' });
           this.onShow();
         }
       }
@@ -75,10 +93,11 @@ Page({
     });
   },
 
+  /* 从未掌握列表移除 = 视为已掌握（抽题降权），与练习页的「已掌握」同一口径 */
   onRemove(e) {
     const id = e.currentTarget.dataset.id;
-    store.removeWrong(id);
-    wx.showToast({ title: '已移出', icon: 'none' });
+    store.markMastered(id);
+    wx.showToast({ title: '已标记掌握', icon: 'none' });
     this.onShow();
   },
 
@@ -96,6 +115,6 @@ Page({
   noop() {},
 
   onShareAppMessage() {
-    return { title: '刷题宝 · 错题本', path: '/pages/wrong/wrong' };
+    return { title: '刷题宝 · 未掌握', path: '/pages/wrong/wrong' };
   }
 });

@@ -4,7 +4,7 @@
   <view class="hero-stats">
     <view><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
     <view><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
-    <view><view class="num">{{wrongN}}</view><view class="lbl">错题本</view></view>
+    <view><view class="num">{{wrongN}}</view><view class="lbl">未掌握</view></view>
     <view><view class="num">{{streakN}}天</view><view class="lbl">连续打卡</view></view>
   </view>
 </view>
@@ -26,7 +26,7 @@
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="rand">
     <view class="ic teal"><text>⇄</text></view>
     <view class="t">随机练习</view>
-    <view class="d">随机抽题打乱，防止记位置</view>
+    <view class="d">按掌握度加权抽题，已掌握少出</view>
   </view>
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="exam">
     <view class="ic orange"><text>◷</text></view>
@@ -35,8 +35,8 @@
   </view>
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="wrong">
     <view class="ic red"><text>▲</text></view>
-    <view class="t">错题复习</view>
-    <view class="d">重做错题本，答对移出</view>
+    <view class="t">未掌握重练</view>
+    <view class="d">重做未掌握清单，答对移出</view>
   </view>
 </view>
 

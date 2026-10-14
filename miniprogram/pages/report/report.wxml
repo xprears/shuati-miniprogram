@@ -5,7 +5,8 @@
     <view class="kv"><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
     <view class="kv"><view class="num">{{days}}</view><view class="lbl">练习天数</view></view>
     <view class="kv"><view class="num">{{streakN}} 天</view><view class="lbl">连续打卡</view></view>
-    <view class="kv"><view class="num">{{wrongN}}</view><view class="lbl">错题待复习</view></view>
+    <view class="kv"><view class="num">{{wrongN}}</view><view class="lbl">未掌握</view></view>
+    <view class="kv"><view class="num">{{masteredN}}</view><view class="lbl">已掌握</view></view>
     <view class="kv"><view class="num">{{examN}}</view><view class="lbl">考试场次</view></view>
   </view>
 </view>
@@ -79,6 +80,7 @@
   <view class="muted-2">关闭后，练习模式不显示即时判分，统一在结束练习时评分。</view>
   <view class="divider"></view>
   <button class="btn gray sm" hover-class="hover" bindtap="onClearPractice">清除进行中的练习进度</button>
-  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearWrong">清空错题本</button>
+  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearWrong">清空未掌握列表</button>
+  <button wx:if="{{masteredN > 0}}" class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearMastered">清除已掌握标记（{{masteredN}}）</button>
   <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onResetAll">重置所有学习数据</button>
 </view>

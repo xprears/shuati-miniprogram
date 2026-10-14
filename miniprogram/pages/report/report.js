@@ -8,6 +8,7 @@ Page({
     days: 0,
     streakN: 0,
     wrongN: 0,
+    masteredN: 0,
     examN: 0,
     trend: [],
     trendLabels: [],
@@ -80,6 +81,7 @@ Page({
       days: Object.keys(S.days).length,
       streakN: S.streak.n,
       wrongN: store.wrongCount(),
+      masteredN: store.masteredCount(),
       examN: S.history.length,
       trend: days,
       trendLabels: days.map((x, i) => (i % 3 === 0 || i === 13) ? x.label : ''),
@@ -116,20 +118,30 @@ Page({
 
   onClearWrong() {
     wx.showModal({
-      title: '提示', content: '确定清空错题本？', confirmText: '清空', confirmColor: '#DC2626',
+      title: '提示', content: '确定清空未掌握列表？', confirmText: '清空', confirmColor: '#DC2626',
       success: (res) => {
         if (res.confirm) { store.S.wrong = {}; store.save(); wx.showToast({ title: '已清空', icon: 'none' }); this.onShow(); }
       }
     });
   },
 
+  onClearMastered() {
+    wx.showModal({
+      title: '提示', content: '清除全部「已掌握」标记？这些题之后恢复正常出现概率。',
+      confirmText: '清除', confirmColor: '#DC2626',
+      success: (res) => {
+        if (res.confirm) { store.S.mastered = {}; store.save(); wx.showToast({ title: '已清除', icon: 'none' }); this.onShow(); }
+      }
+    });
+  },
+
   onResetAll() {
     wx.showModal({
-      title: '危险操作', content: '将清空全部答题记录、错题本、考试记录与设置，且不可恢复。确定？',
+      title: '危险操作', content: '将清空全部答题记录、未掌握列表、已掌握标记、考试记录与设置，且不可恢复。确定？',
       confirmText: '全部重置', confirmColor: '#DC2626',
       success: (res) => {
         if (res.confirm) {
-          const dflt = { v: 1, qs: {}, wrong: {}, hidden: {}, practice: null, history: [], days: {}, streak: { last: '', n: 0 }, settings: { feedback: true } };
+          const dflt = { v: 1, qs: {}, wrong: {}, mastered: {}, hidden: {}, practice: null, history: [], days: {}, streak: { last: '', n: 0 }, settings: { feedback: true } };
           Object.keys(store.S).forEach(k => { delete store.S[k]; });
           Object.assign(store.S, dflt);
           store.save();

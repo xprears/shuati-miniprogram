@@ -1,17 +1,23 @@
 <view wx:if="{{!total}}" class="empty">
   <view class="ic">▲</view>
-  <view>错题本是空的</view>
-  <view class="muted-2">练习和考试中答错的题会自动出现在这里</view>
+  <view>未掌握列表是空的</view>
+  <view class="muted-2">答错的题会自动进来；练习时手动点「标记未掌握」也会收入这里</view>
+</view>
+
+<view wx:if="{{masteredN > 0}}" class="card">
+  <view class="card-title">已标记掌握 {{masteredN}} 题</view>
+  <view class="muted-2">这些题在随机练习里出现概率更低（约 1/4）</view>
+  <button class="btn gray sm" hover-class="hover" style="margin-top:10px" bindtap="onClearMastered">清除已掌握标记</button>
 </view>
 
 <block wx:if="{{total}}">
   <view class="card">
-    <view class="card-title">共 {{total}} 道错题</view>
+    <view class="card-title">共 {{total}} 道未掌握</view>
     <view class="row">
       <button class="btn" hover-class="hover" bindtap="onRedo" data-mode="seq">顺序重做</button>
       <button class="btn ghost" hover-class="hover" bindtap="onRedo" data-mode="rand">随机重做</button>
     </view>
-    <button class="btn gray sm" hover-class="hover" style="margin-top:10px" bindtap="onClear">清空错题本</button>
+    <button class="btn gray sm" hover-class="hover" style="margin-top:10px" bindtap="onClear">清空未掌握列表</button>
   </view>
 
   <view wx:for="{{list}}" wx:key="id" class="wrong-row">
@@ -21,11 +27,11 @@
     </view>
     <view class="meta">
       <text>{{item.meta}}</text>
-      <text>错 {{item.wrongN}} 次</text>
+      <text>{{item.wrongN > 0 ? '错 ' + item.wrongN + ' 次' : '手动标记'}}</text>
     </view>
     <view class="chapter-actions">
       <button class="btn ghost sm" hover-class="hover" bindtap="onDetail" data-id="{{item.id}}">查看解析</button>
-      <button class="btn gray sm" hover-class="hover" bindtap="onRemove" data-id="{{item.id}}">移出</button>
+      <button class="btn gray sm" hover-class="hover" bindtap="onRemove" data-id="{{item.id}}">标记已掌握</button>
     </view>
   </view>
 </block>

@@ -160,6 +160,9 @@ button::after { border: none; }
 .feedback .ft { font-weight: 700; display: block; margin-bottom: 3px; }
 .qfoot { display: flex; gap: 10px; margin-top: 14px; margin-bottom: 12px; }
 .qfoot .btn { flex: 1; }
+/* 掌握度标记行：紧接「答题卡 / 退出练习」那一行，放在页面最底部 */
+.mark-row { display: flex; gap: 10px; margin-bottom: 14px; }
+.mark-row .btn { flex: 1; padding: 11px 14px; font-size: 14.5px; border-radius: 11px; }
 /* ⚠️ pre-wrap 只能挂在正文 view 上，不能挂 .ref-box：
    white-space 是继承属性，挂在容器上会把 WXML 标签之间的缩进换行也当成有效空白渲染成空行，
    按钮上下各多出 58px / 38px 的空白（2026-10-13 修）。 */
@@ -203,7 +206,7 @@ button::after { border: none; }
 .result-row .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .result-row .st { flex-shrink: 0; font-size: 12px; font-weight: 600; }
 
-/* ---------- 错题本 ---------- */
+/* ---------- 未掌握列表 ---------- */
 .wrong-row { background: var(--card); border-radius: 12px; box-shadow: 0 1px 3px rgba(16,34,73,.06), 0 4px 14px rgba(16,34,73,.05); padding: 12px 13px; margin-bottom: 9px; }
 .wrong-row .head { display: flex; align-items: flex-start; gap: 9px; }
 .wrong-row .grow { flex: 1; min-width: 0; font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

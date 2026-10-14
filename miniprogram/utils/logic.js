@@ -99,7 +99,7 @@ function fmtDateTime(ts) {
 }
 
 /* 页面设置项（跨页共享，存 store.ui） */
-const SETUP_MODE_NAME = { seq: '顺序练习', rand: '随机练习', exam: '模拟考试', wrong: '错题复习' };
+const SETUP_MODE_NAME = { seq: '顺序练习', rand: '随机练习', exam: '模拟考试', wrong: '未掌握重练' };
 
 module.exports = {
   QLIST, QMAP, TREE, TYPE_LABEL, TYPE_ORDER, SETUP_MODE_NAME,
