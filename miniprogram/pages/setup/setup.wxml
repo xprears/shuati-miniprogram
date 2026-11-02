@@ -29,7 +29,10 @@
 <view class="card">
   <view class="card-title">
     <text>题型</text>
-    <text class="act" hover-class="hover" bindtap="onTypesAll">全选</text>
+    <text wx:if="{{types.length}}" class="muted-2">已选 {{typesOnN}} / {{types.length}}</text>
+  </view>
+  <view wx:if="{{presets.length}}" class="preset-row">
+    <view wx:for="{{presets}}" wx:key="key" class="preset {{item.on ? 'on' : ''}} {{item.off ? 'off' : ''}}" hover-class="hover" bindtap="onPresetTypes" data-kind="{{item.key}}">{{item.label}}</view>
   </view>
   <view class="chip-row">
     <view wx:for="{{types}}" wx:key="key" class="chip {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onTypeTap" data-key="{{item.key}}">{{item.label}}</view>

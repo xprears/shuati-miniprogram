@@ -155,6 +155,12 @@ button::after { border: none; }
 .chip.hover { background: #E3E8F0; }
 .chip.on.hover { background: #DCE8FA; }
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+/* 设置页题型预设：三段等宽，用「选目标集合」替代「逐个取消」（最后一种题型点不掉会让人困惑） */
+.preset-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.preset { flex: 1; text-align: center; padding: 7px 0; border-radius: 9px; background: #F2F5FA; color: var(--text-2); font-size: 12.5px; border: 1px solid transparent; }
+.preset.on { background: var(--primary-light); color: var(--primary); border-color: var(--primary); font-weight: 600; }
+.preset.hover { opacity: .8; }
+.preset.off { background: #F7F9FC; color: var(--text-3); }
 .count-pill { padding: 8px 15px; border-radius: 10px; background: #EEF1F6; font-size: 14px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; display: inline-flex; }
 .count-pill.on { background: var(--primary); color: #fff; }
 .count-pill.hover { opacity: .82; }

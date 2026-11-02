@@ -15,6 +15,8 @@ Page({
     ],
     chapters: [],
     types: [],
+    typesOnN: 0,
+    presets: [],
     counts: [],
     durs: [],
     poolN: 0,
@@ -59,10 +61,28 @@ Page({
     const types = logic.TYPE_ORDER.filter(t => avail[t]).map(t => ({
       key: t, label: logic.TYPE_LABEL[t], on: store.ui.setupTypes.indexOf(t) >= 0
     }));
+    /* 预设当前态：逐个取消题型后要能一眼看出「现在不是任何一个预设」 */
+    const allT = types.map(t => t.key);
+    const objT = typesByKind('objective');
+    const subT = typesByKind('subjective');
+    let preset = 'custom';
+    if (sameSet(store.ui.setupTypes, allT)) preset = 'all';
+    else if (sameSet(store.ui.setupTypes, objT)) preset = 'objective';
+    else if (subT.length && sameSet(store.ui.setupTypes, subT)) preset = 'subjective';
+    const presets = [
+      { key: 'all', label: '全选', on: preset === 'all', off: false },
+      { key: 'objective', label: '仅客观题', on: preset === 'objective', off: false },
+      /* 纯主观/纯客观题库里缺的那一档置灰，点了只会有空题池 */
+      { key: 'subjective', label: '仅主观题', on: preset === 'subjective', off: !subT.length }
+    ];
+    const typesOnN = allT.filter(t => store.ui.setupTypes.indexOf(t) >= 0).length;
     const pool = this.currentPool();
 
     if (!logic.QLIST.length) {
-      this.setData({ empty: true, types: types, counts: [], durs: [], poolN: 0, startN: 0, tip: '' });
+      this.setData({
+        empty: true, types: types, typesOnN: 0, presets: [], counts: [], durs: [],
+        poolN: 0, startN: 0, tip: ''
+      });
       return;
     }
 
@@ -89,7 +109,8 @@ Page({
     const durs = isExam ? [30, 60, 90, 120].map(n => ({ n: n, label: n + '分钟', on: store.ui.setupDur === n })) : [];
 
     this.setData({
-      empty: false, types: types, counts: counts, durs: durs,
+      empty: false, types: types, typesOnN: typesOnN, presets: presets,
+      counts: counts, durs: durs,
       poolN: pool.length, startN: startN, tip: pool.length ? '' : this.emptyTip()
     });
   },
@@ -142,14 +163,27 @@ Page({
     const key = e.currentTarget.dataset.key;
     const arr = store.ui.setupTypes;
     const i = arr.indexOf(key);
-    if (i >= 0) { if (arr.length > 1) arr.splice(i, 1); }
-    else arr.push(key);
+    if (i >= 0) {
+      /* 原来点掉最后一个题型是静默无反应，看着像点坏了；明确告诉用户为什么点不掉 */
+      if (arr.length <= 1) {
+        wx.showToast({ title: '至少保留一个题型', icon: 'none' });
+        return;
+      }
+      arr.splice(i, 1);
+    } else arr.push(key);
     this.refresh();
   },
 
-  /* 勾选被改乱后的恢复入口：一键勾回当前题库的所有题型 */
-  onTypesAll() {
-    store.ui.setupTypes = logic.TYPE_ORDER.filter(t => logic.QLIST.some(q => q.type === t));
+  /* 题型预设：用「选目标集合」替代「逐个取消」，覆盖全选/仅客观/仅主观三种常用场景；
+     逐题 chip 保留，想「只练多选+判断」仍可手动勾 */
+  onPresetTypes(e) {
+    const kind = e.currentTarget.dataset.kind;
+    const arr = kind === 'all' ? typesByKind('all') : typesByKind(kind);
+    if (!arr.length) {
+      wx.showToast({ title: '这套题库没有主观题', icon: 'none' });
+      return;
+    }
+    store.ui.setupTypes = arr.slice();
     this.refresh();
   },
 
@@ -200,6 +234,23 @@ Page({
     return { title: '刷题本子 · 刷题练习工具' };
   }
 });
+
+/* 题型按「客观/主观」分组：logic.isSubjective 看的是有没有 options 而不是题型名
+ * （blank 恒为客观，与判分口径一致），所以必须按当前题库实时算，不能写死题型清单。 */
+function typesByKind(kind) {
+  const avail = {};
+  logic.QLIST.forEach(q => {
+    const subj = logic.isSubjective(q);
+    if (kind === 'all' || (kind === 'subjective') === subj) avail[q.type] = true;
+  });
+  return logic.TYPE_ORDER.filter(t => avail[t]);
+}
+
+/* 顺序无关的集合比较：setupTypes 的排列取决于用户点击顺序，直接 join 比会误判 */
+function sameSet(a, b) {
+  if (!a || !b) return false;
+  return a.slice().sort().join(',') === b.slice().sort().join(',');
+}
 
 /* 勾选题型收敛到当前题库真实有的题型；一个都没剩下就全选 */
 function normalizeTypes() {
