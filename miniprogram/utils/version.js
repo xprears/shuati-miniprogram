@@ -10,8 +10,13 @@
  *
  * BASE_VERSION 必须与 miniprogram/package.json 的 version 一致，
  * build/mp-lint.js 第 9 项会校验，不一致直接失败。
+ *
+ * ⚠️ 这个号**不是语义化版本，不要自己定 1.1.0 之类**：线上版本号由发布流程
+ *    自动递增（1.0.0 起每次「分享 → 更新」+0.0.1），人工改不了。这里的值只是
+ *    「当前代码大致对应哪一版」的本地标注，正式版运行时读的是微信给的真实值。
+ *    发布一次后回来 +0.0.1 与线上对齐，别让开发版显示一个线上不存在的号。
  */
-const BASE_VERSION = '1.1.0';
+const BASE_VERSION = '1.0.7';
 
 const ENV_LABEL = { develop: '开发版', trial: '体验版', release: '正式版' };
 
@@ -31,7 +36,7 @@ function appVersion() {
   return runtime().version || BASE_VERSION;
 }
 
-/* 带环境标注，给反馈模板用：'1.1.0 · 正式版' / '1.1.0 · 开发版' */
+/* 带环境标注，给反馈模板用：'1.0.7 · 正式版' / '1.0.7 · 开发版' */
 function appVersionLabel() {
   const r = runtime();
   const label = ENV_LABEL[r.env] || '';
