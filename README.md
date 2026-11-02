@@ -32,6 +32,33 @@
 
 ---
 
+## 只要题库 JSON？（不做小程序，最常用）
+
+大部分人其实只想要一份能导入的标准 JSON。**不用装任何东西**，把下面这句丢给会读网页的 AI（元宝 / DeepSeek / 豆包 / ChatGPT 等），再把题库文档一起发过去：
+
+> 读这个文件里的题库转换规范，然后严格按它把我的题库转成标准 JSON：
+> https://raw.githubusercontent.com/xprears/shuati-miniprogram/main/skills/bank-json/SKILL.md
+> 先打开链接读完规范再动手；只输出 JSON 数组，不要解释、不要代码块标记。
+
+AI 会自己打开这份规范照着转，**不用你复制一万字提示词**。
+
+支持技能安装的 Agent（WorkBuddy / Claude Code 等）可以直接装，装完一句「把我的题库转成标准 JSON」就够了：
+
+**https://github.com/xprears/shuati-miniprogram/blob/main/skills/bank-json/SKILL.md**
+
+> 手动安装：把 `skills/bank-json/` 整个目录复制到 `~/.workbuddy/skills/shuati-bank-json/`。
+
+转完把 JSON 贴进小程序「导入题库」，或者存成 `.json` 发到微信聊天再从会话里选文件。
+
+**两条硬规矩**（这两处错了导入必失败）：
+
+- 根节点必须是**数组**，不能包成 `{"questions": [...]}`。
+- 题干空位一律写全角 **`（ ）`**；原文把答案印在空位里（如「在（B）米及以上」）要换成「（ ）」，答案搬到 `answer`。
+
+AI 打不开链接时（手机端不少 AI 读不了网页），退回用完整提示词：[docs/ai-bank-prompt.md](docs/ai-bank-prompt.md)。
+
+---
+
 ## 快速开始（推荐）
 
 **三步，不用敲命令、不用装 Python —— 让 WorkBuddy 干。**
@@ -245,11 +272,16 @@ module.exports = {
 ├─ build/
 │  ├─ build_bank.js            ★   构建：questions.json → miniprogram/utils/qbank.js（零依赖）
 │  ├─ mp-lint.js                   小程序静态校验（体积 / 事件 / API 白名单）
+│  ├─ gen_prompts.js               从 docs/ai-bank-prompt.md 生成技能与 App 内提示词（防两处漂移）
 │  └─ sample/                      示例题库 + 示例解析
 ├─ docs/
-│  ├─ ai-bank-prompt.md            AI 生成题库 / 解析的提示词
+│  ├─ ai-bank-prompt.md            AI 生成题库 / 解析的提示词（唯一事实源）
 │  └─ screenshots/                 界面截图
-└─ skills/SKILL.md                 WorkBuddy 技能（导入即用，见「快速开始」）
+└─ skills/
+   ├─ SKILL.md                     WorkBuddy 技能：从题库到小程序全流程（见「快速开始」）
+   └─ bank-json/                   技能：题库 → 标准 JSON（只做转换，见「只要题库 JSON」）
+      ├─ SKILL.md
+      └─ references/analysis.md   解析编写规范
 ```
 
 ---

@@ -30,6 +30,7 @@ node_modules/
 build/*
 !build/build_bank.js
 !build/mp-lint.js
+!build/gen_prompts.js
 !build/sample/
 !build/sample/**
 
