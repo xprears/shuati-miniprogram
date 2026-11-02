@@ -1,5 +1,14 @@
 const store = require('../../utils/store.js');
 const logic = require('../../utils/logic.js');
+const contact = require('../../utils/contact.js');
+const bankStore = require('../../utils/bank-store.js');
+const confirm = require('../../utils/confirm.js');
+
+const AUTO_OPTIONS = [
+  { v: 0, label: '不自动' },
+  { v: 2, label: '连续 2 次' },
+  { v: 3, label: '连续 3 次' }
+];
 
 Page({
   data: {
@@ -17,13 +26,19 @@ Page({
     chapterStats: [],
     weak: [],
     history: [],
-    feedback: true
+    feedback: true,
+    autoMaster: 2,
+    autoOptions: AUTO_OPTIONS,
+    bankName: '',
+    fbReady: false,
+    fbCustomer: false,
+    fbWechat: '',
+    fbEmail: ''
   },
 
   onShow() {
     const S = store.S;
-    let totalAns = 0, totalRight = 0;
-    Object.keys(S.qs).forEach(k => { totalAns += S.qs[k].r + S.qs[k].w; totalRight += S.qs[k].r; });
+    const st = store.stats();   // 统计口径统一在 store：只算当前题库里的题，空态归零
 
     // 近 14 天趋势
     const days = [];
@@ -35,14 +50,19 @@ Page({
     }
     const maxN = Math.max.apply(null, days.map(x => x.n).concat([1]));
 
-    // 题型正确率
+    // 题型与章节统计（合并为单次遍历）
     const typeStat = {};
+    const chStat = {};
     Object.keys(S.qs).forEach(id => {
       const q = logic.QMAP[id];
       if (!q) return;
+      const rec = S.qs[id];
       const t = typeStat[q.type] || (typeStat[q.type] = { r: 0, w: 0 });
-      t.r += S.qs[id].r; t.w += S.qs[id].w;
+      t.r += rec.r; t.w += rec.w;
+      const c = chStat[q.chapter] || (chStat[q.chapter] = { r: 0, w: 0 });
+      c.r += rec.r; c.w += rec.w;
     });
+
     const typeStats = Object.keys(typeStat)
       .map(t => {
         const x = typeStat[t];
@@ -50,15 +70,6 @@ Page({
         return { name: logic.TYPE_LABEL[t] || t, pct: p, color: p >= 80 ? '#16A34A' : p >= 60 ? '#D97706' : '#DC2626' };
       })
       .sort((a, b) => b.pct - a.pct);
-
-    // 章节掌握度（练习量前 8）
-    const chStat = {};
-    Object.keys(S.qs).forEach(id => {
-      const q = logic.QMAP[id];
-      if (!q) return;
-      const c = chStat[q.chapter] || (chStat[q.chapter] = { r: 0, w: 0 });
-      c.r += S.qs[id].r; c.w += S.qs[id].w;
-    });
     const chapterStats = Object.keys(chStat)
       .sort((a, b) => (chStat[b].r + chStat[b].w) - (chStat[a].r + chStat[a].w))
       .slice(0, 8)
@@ -76,26 +87,33 @@ Page({
       .slice(0, 5);
 
     this.setData({
-      totalAns: totalAns,
-      accuracy: totalAns ? logic.pct(totalRight, totalAns) + '%' : '-',
-      days: Object.keys(S.days).length,
-      streakN: S.streak.n,
-      wrongN: store.wrongCount(),
-      masteredN: store.masteredCount(),
-      examN: S.history.length,
+      totalAns: st.totalAns,
+      accuracy: st.accuracy,
+      days: st.days,
+      streakN: st.streakN,
+      wrongN: st.wrongN,
+      masteredN: st.masteredN,
+      examN: st.examN,
       trend: days,
       trendLabels: days.map((x, i) => (i % 3 === 0 || i === 13) ? x.label : ''),
       trendMax: maxN,
       typeStats: typeStats,
       chapterStats: chapterStats,
       weak: weak,
-      history: S.history.slice().reverse().slice(0, 20).map(x => ({
+      history: st.noBank ? [] : S.history.slice().reverse().slice(0, 20).map(x => ({
+        id: x.at,
         score: x.score, scope: x.scopeLabel, total: x.total,
         time: logic.fmtDateTime(x.at), dur: logic.fmtDur(x.duration),
         bg: x.score >= 80 ? '#E9F8EF' : x.score >= 60 ? '#FDF3E3' : '#FDECEC',
         color: x.score >= 80 ? '#16A34A' : x.score >= 60 ? '#D97706' : '#DC2626'
       })),
-      feedback: S.settings.feedback
+      feedback: S.settings.feedback,
+      autoMaster: store.autoMasterThreshold(),
+      bankName: (bankStore.info() || {}).name || '',
+      fbReady: contact.ready(),
+      fbCustomer: !!contact.CONTACT.useCustomerService,
+      fbWechat: contact.CONTACT.wechatId,
+      fbEmail: contact.CONTACT.email
     });
   },
 
@@ -107,48 +125,149 @@ Page({
     wx.showToast({ title: S.settings.feedback ? '已开启即时反馈' : '已关闭即时反馈', icon: 'none' });
   },
 
-  onClearPractice() {
-    wx.showModal({
-      title: '提示', content: '确定清除当前练习进度？', confirmText: '清除',
-      success: (res) => {
-        if (res.confirm) { store.S.practice = null; store.save(); wx.showToast({ title: '已清除', icon: 'none' }); }
+  /* 自动掌握门槛：连续答对几次自动标记「已掌握」。只在练习模式生效，测验不算 */
+  onSetAutoMaster(e) {
+    const v = Number(e.currentTarget.dataset.v);
+    store.S.settings.autoMaster = v;
+    store.save();
+    this.setData({ autoMaster: v });
+    wx.showToast({ title: v ? '连续答对 ' + v + ' 次即标记掌握' : '已关闭自动标记', icon: 'none' });
+  },
+
+  /* 备用通道：复制微信号。主入口是微信客服（open-type="contact"，见 report.wxml），
+     这条留着是因为「后台没配客服人员时客服按钮点了没反应」——总得有条能走通的路 */
+  onCopyWechat() {
+    const id = contact.CONTACT.wechatId;
+    if (!id) return;
+    wx.setClipboardData({
+      data: id,
+      success: () => {
+        wx.showModal({
+          title: '微信号已复制',
+          content: id + '\n\n打开微信 → 添加朋友 → 粘贴搜索，加我后把题号或截图发过来。',
+          showCancel: false,
+          confirmText: '知道了'
+        });
       }
+    });
+  },
+
+  onCopyEmail() {
+    const mail = contact.CONTACT.email;
+    if (!mail) return;
+    wx.setClipboardData({
+      data: mail,
+      success: () => { wx.showToast({ title: '邮箱已复制', icon: 'none' }); }
+    });
+  },
+
+  /* 诊断信息：微信客服会话只透传聊天内容，不带任何上下文 —— 用户点进去只会打
+   * 「导入不进去」。把版本、题库、练习统计拼好让他粘一下，能省掉好几轮来回。 */
+  onCopyDiagnostics() {
+    const S = store.S;
+    const st = store.stats();
+    const info = bankStore.info() || {};
+    const h = S.history.length ? S.history[S.history.length - 1] : null;
+    const text = contact.buildTemplate({
+      total: info.count || logic.QLIST.length,
+      bankName: info.name || '',
+      fp: info.fp || '',
+      ansN: st.totalAns,
+      acc: st.accuracy,
+      wrongN: st.wrongN,
+      masteredN: st.masteredN,
+      examN: st.examN,
+      lastExam: h ? (logic.fmtDateTime(h.at) + ' · ' + h.score + ' 分') : '',
+      page: '练习报告'
+    });
+    wx.setClipboardData({
+      data: text,
+      success: () => wx.showModal({
+        title: '诊断信息已复制',
+        content: '进入客服会话后粘贴发送即可。\n\n带上版本号、题库和练习统计，能少来回好几次。',
+        showCancel: false,
+        confirmText: '知道了'
+      }),
+      fail: () => wx.showToast({ title: '复制失败', icon: 'none' })
+    });
+  },
+
+  /* ---------- 危险操作：统一两跳确认（utils/confirm.js） ---------- */
+  onClearPractice() {
+    confirm.confirmDanger({
+      title: '清除练习进度',
+      content: '将丢弃当前这场练习的作答（没提交的不会计入任何记录）。别的数据不受影响。',
+      again: '当前练习进度会被丢弃，无法恢复，确认？',
+      confirmText: '清除'
+    }, () => {
+      store.S.practice = null;
+      store.save();
+      wx.showToast({ title: '已清除', icon: 'none' });
     });
   },
 
   onClearWrong() {
-    wx.showModal({
-      title: '提示', content: '确定清空未掌握列表？', confirmText: '清空', confirmColor: '#DC2626',
-      success: (res) => {
-        if (res.confirm) { store.S.wrong = {}; store.save(); wx.showToast({ title: '已清空', icon: 'none' }); this.onShow(); }
-      }
+    const n = store.stats().wrongN;
+    confirm.confirmDanger({
+      title: '清空未掌握列表',
+      content: '将清空 ' + n + ' 道未掌握题，这些题会恢复正常出现概率。答题次数与正确率统计不受影响。',
+      again: '这 ' + n + ' 道题的未掌握标记将全部丢失，无法恢复，确认？',
+      confirmText: '清空'
+    }, () => {
+      store.S.wrong = {};
+      store.save();
+      wx.showToast({ title: '已清空', icon: 'none' });
+      this.onShow();
     });
   },
 
   onClearMastered() {
-    wx.showModal({
-      title: '提示', content: '清除全部「已掌握」标记？这些题之后恢复正常出现概率。',
-      confirmText: '清除', confirmColor: '#DC2626',
-      success: (res) => {
-        if (res.confirm) { store.S.mastered = {}; store.save(); wx.showToast({ title: '已清除', icon: 'none' }); this.onShow(); }
-      }
+    const n = store.stats().masteredN;
+    confirm.confirmDanger({
+      title: '清除已掌握标记',
+      content: '将清除 ' + n + ' 道已掌握标记，这些题之后恢复正常出现概率。',
+      again: '已掌握标记无法恢复（重新答对可再自动积累），确认？',
+      confirmText: '清除'
+    }, () => {
+      store.S.mastered = {};
+      store.save();
+      wx.showToast({ title: '已清除', icon: 'none' });
+      this.onShow();
+    });
+  },
+
+  /* 不可逆操作的唯一后路：把记录导出成 JSON 存到剪贴板，用户可以自己存起来。
+   * 重置前弹窗里会提示先做这一步。 */
+  onExportRecords() {
+    const S = store.S;
+    const info = bankStore.info() || {};
+    const dump = {
+      app: '刷题本子',
+      v: 1,
+      at: new Date().toISOString(),
+      bank: { name: info.name || '', count: info.count || 0, fp: info.fp || '' },
+      qs: S.qs, wrong: S.wrong, mastered: S.mastered,
+      history: S.history, days: S.days, streak: S.streak
+    };
+    wx.setClipboardData({
+      data: JSON.stringify(dump),
+      success: () => wx.showToast({ title: '记录已复制，粘到记事本保存', icon: 'none', duration: 2200 }),
+      fail: () => wx.showToast({ title: '复制失败', icon: 'none' })
     });
   },
 
   onResetAll() {
-    wx.showModal({
-      title: '危险操作', content: '将清空全部答题记录、未掌握列表、已掌握标记、考试记录与设置，且不可恢复。确定？',
-      confirmText: '全部重置', confirmColor: '#DC2626',
-      success: (res) => {
-        if (res.confirm) {
-          const dflt = { v: 1, qs: {}, wrong: {}, mastered: {}, hidden: {}, practice: null, history: [], days: {}, streak: { last: '', n: 0 }, settings: { feedback: true } };
-          Object.keys(store.S).forEach(k => { delete store.S[k]; });
-          Object.assign(store.S, dflt);
-          store.save();
-          wx.showToast({ title: '已重置', icon: 'none' });
-          wx.switchTab({ url: '/pages/index/index' });
-        }
-      }
+    confirm.confirmDanger({
+      title: '重置所有练习数据',
+      content: '将清空全部答题记录、未掌握列表、已掌握标记、测验记录与设置。题库本身和单题修改不受影响。\n\n建议先点「导出练习记录」备份。',
+      again: '全部练习数据将被清空且无法恢复，确认重置？',
+      confirmText: '全部重置'
+    }, () => {
+      /* 题库指纹、折叠状态、单题修改留底由 store.resetAll 保留 —— 丢了指纹
+         下次启动会被当成「换题库」，平白弹一次清记录询问 */
+      store.resetAll();
+      wx.showToast({ title: '已重置', icon: 'none' });
+      wx.switchTab({ url: '/pages/index/index' });
     });
   },
 
@@ -161,6 +280,10 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: '刷题宝 · 学习报告', path: '/pages/report/report' };
+    return { title: '刷题本子 · 练习报告', path: '/pages/report/report' };
+  },
+
+  onShareTimeline() {
+    return { title: '刷题本子 · 刷题练习工具' };
   }
 });

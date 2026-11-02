@@ -40,6 +40,7 @@
   <view class="detail-sheet" catchtap="noop">
     <view class="detail-head">
       <view class="t">题目解析</view>
+      <button class="btn sm ghost" hover-class="hover" bindtap="onEditDetail">修改</button>
       <button class="btn sm gray" hover-class="hover" bindtap="onCloseDetail">关闭</button>
     </view>
     <scroll-view scroll-y class="detail-body">
@@ -50,7 +51,7 @@
           <view class="txt">{{item.text}}{{item.isAns ? ' ✓' : ''}}</view>
         </view>
       </view>
-      <view wx:if="{{detail.options.length}}" class="muted" style="margin-top:4px">正确答案：{{detail.ansText}}</view>
+      <view wx:if="{{detail.hasAns}}" class="muted" style="margin-top:4px;line-height:1.8;white-space:pre-wrap">正确答案：{{detail.ansText}}</view>
       <view wx:if="{{detail.hasRef}}" class="ref-box" style="margin-top:12px">
         <view class="rt">参考答案</view>
         <view>{{detail.reference}}</view>
@@ -58,9 +59,6 @@
       <view wx:if="{{detail.hasAnalysis}}" class="ref-box" style="margin-top:12px">
         <view class="rt">题目解析</view>
         <view>{{detail.analysis}}</view>
-        <view class="ref-actions">
-          <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{detail.id}}">解析反馈</button>
-        </view>
       </view>
     </scroll-view>
   </view>

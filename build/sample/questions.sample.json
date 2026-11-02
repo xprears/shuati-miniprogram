@@ -168,5 +168,29 @@
   "chapter": "第七章 实操模拟题【1题】",
   "category": null,
   "qno": 1
+ },
+ {
+  "id": "q0013",
+  "type": "blank",
+  "stem": "光在真空中的传播速度约为（ ）m/s，单模光纤的纤芯直径通常为（ ）μm。",
+  "options": null,
+  "answer": null,
+  "blanks": ["3×10^8|3e8|3*10^8", "9|9.0"],
+  "part": "二、专业题【网络】",
+  "chapter": "第八章 填空题【2题】",
+  "category": null,
+  "qno": 1
+ },
+ {
+  "id": "q0014",
+  "type": "blank",
+  "stem": "OSI 参考模型共分为（ ）层，其中负责端到端可靠传输的是（ ）层，该层协议头中序号字段的长度为（ ）字节。",
+  "options": null,
+  "answer": null,
+  "blanks": ["7|七", "传输|传输层", "4|四"],
+  "part": "二、专业题【网络】",
+  "chapter": "第八章 填空题【2题】",
+  "category": null,
+  "qno": 2
  }
 ]

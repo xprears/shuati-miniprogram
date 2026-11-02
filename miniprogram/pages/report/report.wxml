@@ -1,5 +1,5 @@
 <view class="card">
-  <view class="card-title">学习总览</view>
+  <view class="card-title"><text>练习总览</text><text wx:if="{{bankName}}" class="muted-2">{{bankName}}</text></view>
   <view class="kv-grid">
     <view class="kv"><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
     <view class="kv"><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
@@ -7,7 +7,7 @@
     <view class="kv"><view class="num">{{streakN}} 天</view><view class="lbl">连续打卡</view></view>
     <view class="kv"><view class="num">{{wrongN}}</view><view class="lbl">未掌握</view></view>
     <view class="kv"><view class="num">{{masteredN}}</view><view class="lbl">已掌握</view></view>
-    <view class="kv"><view class="num">{{examN}}</view><view class="lbl">考试场次</view></view>
+    <view class="kv"><view class="num">{{examN}}</view><view class="lbl">测验场次</view></view>
   </view>
 </view>
 
@@ -20,7 +20,7 @@
     </view>
   </view>
   <view class="trend-labels">
-    <view wx:for="{{trendLabels}}" wx:key="index">{{item}}</view>
+    <view wx:for="{{trendLabels}}" wx:key="*this">{{item}}</view>
   </view>
 </view>
 
@@ -34,7 +34,7 @@
 </view>
 
 <view wx:if="{{chapterStats.length}}" class="card">
-  <view class="card-title">章节掌握度（按练习量）</view>
+  <view class="card-title">章节正确率（按练习量）</view>
   <view wx:for="{{chapterStats}}" wx:key="name" class="bar-row">
     <view class="name">{{item.name}}</view>
     <view class="track"><view style="width:{{item.pct}}%;background:{{item.color}}"></view></view>
@@ -56,9 +56,9 @@
 </view>
 
 <view class="card">
-  <view class="card-title">考试记录（{{examN}}）</view>
+  <view class="card-title">测验记录（{{examN}}）</view>
   <block wx:if="{{history.length}}">
-    <view wx:for="{{history}}" wx:key="index" class="hist-row {{index === history.length - 1 ? 'last' : ''}}">
+    <view wx:for="{{history}}" wx:key="id" class="hist-row {{index === history.length - 1 ? 'last' : ''}}">
       <view class="sc" style="background:{{item.bg}};color:{{item.color}}">
         <text>{{item.score}}</text><text>分</text>
       </view>
@@ -68,7 +68,7 @@
       </view>
     </view>
   </block>
-  <view wx:else class="muted">还没有考试记录，去「模拟考试」试试吧</view>
+  <view wx:else class="muted">还没有测验记录，去「模拟测验」试试吧</view>
 </view>
 
 <view class="card">
@@ -79,8 +79,27 @@
   </view>
   <view class="muted-2">关闭后，练习模式不显示即时判分，统一在结束练习时评分。</view>
   <view class="divider"></view>
+  <view class="t" style="font-size:14px;font-weight:500;margin-bottom:8px">自动标记掌握</view>
+  <view class="chip-row">
+    <view wx:for="{{autoOptions}}" wx:key="v" class="chip {{autoMaster === item.v ? 'on' : ''}}" hover-class="hover" bindtap="onSetAutoMaster" data-v="{{item.v}}">{{item.label}}</view>
+  </view>
+  <view class="muted-2" style="margin-top:8px">练习中连续答对达到这个次数，自动标记「已掌握」并降低出现概率；答错一次即清零。测验不计入。</view>
+  <view class="divider"></view>
   <button class="btn gray sm" hover-class="hover" bindtap="onClearPractice">清除进行中的练习进度</button>
   <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearWrong">清空未掌握列表</button>
   <button wx:if="{{masteredN > 0}}" class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onClearMastered">清除已掌握标记（{{masteredN}}）</button>
-  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onResetAll">重置所有学习数据</button>
+  <button class="btn ghost sm" hover-class="hover" style="margin-top:8px" bindtap="onExportRecords">导出练习记录（备份）</button>
+  <button class="btn gray sm" hover-class="hover" style="margin-top:8px" bindtap="onResetAll">重置所有练习数据</button>
+</view>
+
+<view wx:if="{{fbReady}}" class="card">
+  <view class="card-title">反馈与支持</view>
+  <view class="muted-2">导入校验过不去、判分不对、记录丢了、想要什么功能，都可以直接发我。题库和解析是你自己导入的，解析内容对不对不归这里管。</view>
+  <block wx:if="{{fbCustomer}}">
+    <button class="btn" hover-class="hover" style="margin-top:10px" open-type="contact">联系客服（微信内）</button>
+    <button class="btn ghost sm" hover-class="hover" style="margin-top:8px" bindtap="onCopyDiagnostics">先复制诊断信息，进会话粘贴</button>
+    <view class="muted-2" style="margin-top:8px">客服看不到你的版本号和题库状态，粘一段诊断信息能少来回好几次。</view>
+  </block>
+  <button wx:if="{{fbWechat}}" class="btn ghost sm" hover-class="hover" style="margin-top:8px" bindtap="onCopyWechat">{{fbCustomer ? '或加微信号（' + fbWechat + '）' : '复制微信号（' + fbWechat + '）'}}</button>
+  <button wx:if="{{fbEmail}}" class="btn ghost sm" hover-class="hover" style="margin-top:8px" bindtap="onCopyEmail">复制邮箱（{{fbEmail}}）</button>
 </view>

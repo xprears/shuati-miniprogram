@@ -1,6 +1,6 @@
 {
-  "description": "刷题宝 · 题库练习小程序",
-  "appid": "touristappid",
+  "description": "刷题本子 · 题库练习小程序",
+  "appid": "wx13fee6e9666d399c",
   "miniprogramRoot": "./",
   "compileType": "miniprogram",
   "libVersion": "3.8.12",
@@ -15,14 +15,35 @@
     "autoAudits": false,
     "showShadowRootInWxmlPanel": false,
     "scopeDataCheck": false,
-    "useCompilerPlugins": false
+    "useCompilerPlugins": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "value": "utils/qbank.js",
+        "type": "file"
+      }
+    ],
     "include": []
   },
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
-  }
+  },
+  "simulatorPluginLibVersion": {}
 }

@@ -1,27 +1,38 @@
 <view class="hero">
-  <view class="hero-title" bindlongpress="goFeedback">2026年全国应急通信技能比武理论考核题库</view>
-  <view class="sub">共 {{total}} 题 · {{parts}} 大分类 · {{chapters}} 个章节</view>
-  <view class="hero-stats">
-    <view><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
-    <view><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
-    <view><view class="num">{{wrongN}}</view><view class="lbl">未掌握</view></view>
-    <view><view class="num">{{streakN}}天</view><view class="lbl">连续打卡</view></view>
-  </view>
+  <block wx:if="{{empty}}">
+    <view class="hero-title">刷题练习工具</view>
+    <view class="sub">导入自己的题库 JSON，按章节练习、即时判分、自动收集未掌握的题</view>
+    <view class="hero-btns">
+      <button class="btn" hover-class="hover" bindtap="goImport">导入题库</button>
+      <button class="btn ghost" hover-class="hover" bindtap="goDemo">试用示例题库</button>
+    </view>
+    <view class="hero-note">没有题库文件？把文档发给任意 AI，用页内一键复制的提示词转成 JSON，再粘贴回来即可。</view>
+  </block>
+  <block wx:else>
+    <view class="hero-title">刷题练习工具</view>
+    <view class="sub">{{bankName ? bankName + ' · ' : ''}}共 {{total}} 题 · {{parts}} 大分类 · {{chapters}} 个章节</view>
+    <view class="hero-stats">
+      <view><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
+      <view><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
+      <view><view class="num">{{wrongN}}</view><view class="lbl">未掌握</view></view>
+      <view><view class="num">{{streakN}}天</view><view class="lbl">连续打卡</view></view>
+    </view>
+  </block>
 </view>
 
 <view wx:if="{{resume}}" class="resume-banner">
   <view class="grow">
     <view class="t">继续{{resume.title}}</view>
-    <view class="d">进度 {{resume.progress}} · 已答 {{resume.answered}} 题</view>
+    <view class="d">进度 {{resume.progress}} · 已答 {{resume.answered}} 题{{resume.left ? ' · ' + resume.left : ''}}</view>
   </view>
   <button class="btn sm" hover-class="hover" bindtap="onResumeTap">{{resume.btn}}</button>
 </view>
 
-<view class="mode-grid">
+<view wx:if="{{!empty}}" class="mode-grid">
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="seq">
     <view class="ic blue"><text>☰</text></view>
     <view class="t">顺序练习</view>
-    <view class="d">按题库顺序刷题，即时判分</view>
+    <view class="d">按题库顺序逐题练习，即时判分</view>
   </view>
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="rand">
     <view class="ic teal"><text>⇄</text></view>
@@ -30,7 +41,7 @@
   </view>
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="exam">
     <view class="ic orange"><text>◷</text></view>
-    <view class="t">模拟考试</view>
+    <view class="t">模拟测验</view>
     <view class="d">限时答题卡交卷，自动评分</view>
   </view>
   <view class="mode-card" hover-class="hover" bindtap="onModeTap" data-mode="wrong">
@@ -41,9 +52,9 @@
 </view>
 
 <view wx:if="{{recent.length}}" class="card">
-  <view class="card-title">最近考试</view>
-  <view wx:for="{{recent}}" wx:key="index" class="hist-row {{index === recent.length - 1 ? 'last' : ''}}">
-    <view class="sc" style="background:{{item.score >= 80 ? '#E9F8EF' : item.score >= 60 ? '#FDF3E3' : '#FDECEC'}};color:{{item.score >= 80 ? '#16A34A' : item.score >= 60 ? '#D97706' : '#DC2626'}}">
+  <view class="card-title">最近测验</view>
+  <view wx:for="{{recent}}" wx:key="id" class="hist-row {{index === recent.length - 1 ? 'last' : ''}}">
+    <view class="sc" style="background:{{item.bg}};color:{{item.color}}">
       <text>{{item.score}}</text><text>分</text>
     </view>
     <view class="grow">
@@ -51,5 +62,5 @@
       <view class="d">{{item.time}} · 用时{{item.dur}}</view>
     </view>
   </view>
-  <button class="btn ghost sm" hover-class="hover" style="margin-top:10px" bindtap="goReport">查看全部学习报告</button>
+  <button class="btn ghost sm" hover-class="hover" style="margin-top:10px" bindtap="goReport">查看全部练习报告</button>
 </view>

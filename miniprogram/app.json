@@ -1,27 +1,19 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/import/import",
     "pages/bank/bank",
     "pages/wrong/wrong",
     "pages/report/report",
     "pages/setup/setup",
     "pages/practice/practice",
-    "pages/result/result"
-  ],
-  "subPackages": [
-    {
-      "root": "pkg-feedback",
-      "name": "feedback",
-      "pages": [
-        "form/form",
-        "list/list"
-      ]
-    }
+    "pages/result/result",
+    "pages/edit/edit"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1B4F9C",
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "刷题宝",
+    "navigationBarTitleText": "刷题本子",
     "backgroundColor": "#F4F6FA",
     "backgroundTextStyle": "dark"
   },

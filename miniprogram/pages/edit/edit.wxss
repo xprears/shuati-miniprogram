@@ -1,0 +1,31 @@
+/* 单题编辑页局部样式（.ta / .hint 在导入页也有同名定义，但 WXSS 按页面隔离，
+   这里必须自带一份，不能指望 app.wxss） */
+.field-label { font-size: 12.5px; color: var(--text-2); font-weight: 600; margin: 12px 0 6px; }
+.card .field-label:first-child { margin-top: 0; }
+
+.ta {
+  width: 100%; height: 132px; background: #F4F6FA; border-radius: 10px; padding: 10px;
+  font-size: 14px; line-height: 1.6; box-sizing: border-box;
+}
+.ta-short { height: 96px; }
+
+.hint { color: var(--text-2); font-size: 12.5px; line-height: 1.6; margin-top: 8px; }
+
+.opt-edit { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.opt-edit .key {
+  width: 27px; height: 27px; border-radius: 7px; background: #F0F3F8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--text-2);
+}
+.opt-edit .ipt {
+  flex: 1; min-width: 0; background: #F7F9FC; border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; font-size: 14px;
+}
+.opt-edit .del {
+  width: 27px; height: 27px; border-radius: 7px; background: var(--red-bg); color: var(--red);
+  display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+}
+.opt-edit .del.hover { opacity: .7; }
+
+.err-line { color: var(--red); font-weight: 700; font-size: 14px; }
+.err-item { color: var(--red); font-size: 12px; margin-top: 5px; line-height: 1.5; word-break: break-all; }

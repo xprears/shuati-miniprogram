@@ -19,12 +19,10 @@ const BASE = __dirname;
 const ROOT = path.dirname(BASE);
 const SAMPLE_DIR = path.join(BASE, 'sample');
 const MP = path.join(ROOT, 'miniprogram', 'utils', 'qbank.js');
-
-const TYPES = ['judge', 'single', 'multi', 'essay', 'scenario', 'case', 'operation'];
-const TYPE_CN = {
-  judge: '判断题', single: '单选题', multi: '多选题', essay: '论述题',
-  scenario: '情景判断题', case: '案例分析题', operation: '实操模拟题'
-};
+/* 校验/压缩规则与小程序运行期导入共用同一实现（勿在此复制一份） */
+const BV = require(path.join(ROOT, 'miniprogram', 'utils', 'bank-validate.js'));
+const TYPES = BV.TYPES;
+const TYPE_CN = BV.TYPE_CN;
 
 function rel(p) {
   const r = path.relative(ROOT, p);
@@ -79,72 +77,9 @@ function loadAnalyses(dir, isSample) {
   return out;
 }
 
-/* ---------- 压缩（字段约定见 README） ---------- */
-function compact(qs) {
-  return qs.map(function (q) {
-    const d = { i: q.id, t: q.type, s: q.stem, p: q.part, c: q.chapter };
-    if (q.options && q.options.length) d.o = q.options.map(function (o) { return [o.key, o.text]; });
-    if (q.answer !== null && q.answer !== undefined) d.a = q.answer;
-    if (q.category) d.g = q.category;
-    if (q.reference) d.r = q.reference;
-    if (q.analysis) d.x = q.analysis;
-    return d;
-  });
-}
-
-/* ---------- 格式校验 ---------- */
-function validate(qs) {
-  const errs = [], warns = [], seen = {};
-  qs.forEach(function (q) {
-    const id = q && q.id;
-    if (id) { seen[id] = (seen[id] || 0) + 1; }
-  });
-  Object.keys(seen).forEach(function (id) {
-    if (seen[id] > 1) errs.push('id 重复：' + id + ' ×' + seen[id]);
-  });
-  qs.forEach(function (q) {
-    const tag = (q && q.id) || '(缺 id)';
-    const t = q && q.type;
-    ['id', 'type', 'stem', 'part', 'chapter'].forEach(function (k) {
-      if (!q || !q[k]) errs.push(tag + ' 缺必填字段 ' + k);
-    });
-    if (TYPES.indexOf(t) < 0) {
-      errs.push(tag + ' 题型非法 ' + JSON.stringify(t) + '（可选：' + TYPES.join('/') + '）');
-      return;
-    }
-    if (t === 'judge' || t === 'single' || t === 'multi') {
-      const opts = q.options || [];
-      const keys = opts.map(function (o) { return o && o.key; });
-      const want = keys.map(function (_, i) { return String.fromCharCode(65 + i); });
-      if (keys.join(',') !== want.join(',')) {
-        errs.push(tag + ' 选项键须从 A 起连续编号，当前 [' + keys.join(',') + ']');
-      }
-      if (opts.some(function (o) { return !o || !String(o.text || '').trim(); })) {
-        errs.push(tag + ' 存在空选项文本');
-      }
-      const a = q.answer || '';
-      if (t === 'judge' && a !== '√' && a !== '×') {
-        errs.push(tag + ' 判断题答案须为 √ 或 ×，当前 ' + JSON.stringify(a));
-      }
-      if (t === 'single' && !/^[A-H]$/.test(a)) {
-        errs.push(tag + ' 单选题答案须为单个字母，当前 ' + JSON.stringify(a));
-      }
-      if (t === 'multi' && !/^[A-H]{2,8}$/.test(a)) {
-        errs.push(tag + ' 多选题答案须为 2 个以上字母，当前 ' + JSON.stringify(a));
-      }
-      if (a && a.split('').some(function (c) { return c !== '√' && c !== '×' && keys.indexOf(c) < 0; })) {
-        errs.push(tag + ' 答案含不存在的选项：' + a);
-      }
-    } else if (!String(q.reference || '').trim()) {
-      warns.push(tag + ' 主观题无 reference（参考要点），App 里将显示空');
-    }
-  });
-  return { errs: errs, warns: warns };
-}
-
 /* ---------- 导出 ---------- */
 function exportBank(qs, outPath) {
-  const payload = JSON.stringify(compact(qs));
+  const payload = JSON.stringify(BV.compact(qs));
   const head = '// 题库数据：' + qs.length + ' 题（由 build/build_bank.js 生成，勿手改）\n' +
     '// 字段: i=id t=类型 s=题干 p=大部 c=章节 g=分类 o=选项 a=答案 r=参考答案 x=解析\n';
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
@@ -190,7 +125,7 @@ function main() {
   }
   console.log('题库：' + rel(bankPath) + '（' + qs.length + ' 题）');
 
-  const v = validate(qs);
+  const v = BV.validate(qs);
   if (v.errs.length) {
     console.log('\n发现 ' + v.errs.length + ' 处格式错误（构建继续，但 App 里可能出现异常）：');
     v.errs.slice(0, 20).forEach(function (e) { console.log('  ✗ ' + e); });

@@ -1,0 +1,77 @@
+<view class="card" wx:if="{{hasBank}}">
+  <view class="card-title">当前题库</view>
+  <view class="cur-line">{{info.name ? info.name : '未命名题库'}}</view>
+  <view class="cur-sub">{{info.count}} 题 · {{info.sizeText}} · 导入于 {{info.atText}}</view>
+  <view class="btn-row">
+    <button class="btn sm ghost" hover-class="hover" bindtap="onRename">改名</button>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onExport">导出到剪贴板</button>
+    <button class="btn sm ghost danger" hover-class="hover" bindtap="onClearBank">清除题库</button>
+  </view>
+</view>
+
+<view class="card">
+  <view class="step"><text class="n">1</text>获取题库 JSON</view>
+  <view class="hint">复制下面这句话，发给会读网页的 AI（元宝 / DeepSeek / 豆包等），再把题库文档一起发过去。AI 会自己打开链接里的规范照着转，不用你贴一万字。</view>
+  <view class="btn-row">
+    <button class="btn sm" hover-class="hover" bindtap="onCopyShortPrompt">复制转换指令</button>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onCopyPrompt">复制完整提示词</button>
+  </view>
+  <view class="hint">「完整提示词」约 1.2 万字，只在 AI 明确打不开链接时用（手机端不少 AI 读不了网页）。也可以直接粘贴你已有的 JSON。</view>
+  <view class="link" hover-class="hover" bindtap="onToggleAnalysis">{{showAnalysis ? '收起解析入口 ▲' : '已有题库，只想补解析 ▼'}}</view>
+  <view wx:if="{{showAnalysis}}" class="tpl">
+    <view class="hint">已有题库只缺解析时用这两句。AI 返回的 JSON 对象粘到下一步，页内会自动识别并合并，题量不变。</view>
+    <view class="btn-row">
+      <button class="btn sm ghost" hover-class="hover" bindtap="onCopyShortAnalysisPrompt">复制解析指令</button>
+      <button class="btn sm ghost" hover-class="hover" bindtap="onCopyAnalysisPrompt">复制完整解析提示词</button>
+    </view>
+  </view>
+  <view class="link" hover-class="hover" bindtap="onToggleTemplate">{{showTemplate ? '收起 8 题型模板 ▲' : '查看 8 题型模板 ▼'}}</view>
+  <view wx:if="{{showTemplate}}" class="tpl">
+    <view class="hint">模板覆盖全部 8 种题型，可直接粘贴导入，先体验完整流程。</view>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onCopyTemplate">复制模板 JSON</button>
+  </view>
+</view>
+
+<view class="card">
+  <view class="step"><text class="n">2</text>粘贴或选择文件</view>
+  <textarea class="ta" value="{{taValue}}" placeholder="在此粘贴题库 JSON…" bindinput="onInput" disable-default-padding="{{true}}" />
+  <view class="raw-len" wx:if="{{rawLen}}">{{filled ? '已填入模板（' + rawLen + ' 字符）· 可直接校验，也可粘贴其他 JSON 覆盖' : '已输入 ' + rawLen + ' 字符'}}</view>
+  <view class="btn-row">
+    <button class="btn sm" hover-class="hover" bindtap="onValidate">校验并导入</button>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onChooseFile">从聊天记录选文件</button>
+    <button class="btn sm ghost" hover-class="hover" bindtap="onClearInput">清空</button>
+  </view>
+  <view class="hint">大题库（2000 题以上）建议用「从聊天记录选文件」：先把 JSON 文件发到微信任意聊天（如文件传输助手），从小程序卡片进入本页再选。</view>
+</view>
+
+<view class="card" wx:if="{{analysis}}">
+  <view class="card-title">识别为题目解析</view>
+  <view class="stat">共 {{analysis.total}} 条，匹配当前题库 {{analysis.hit}} 题</view>
+  <view wx:if="{{analysis.miss}}" class="warn-line">! 有 {{analysis.miss}} 个题号在当前题库里找不到（{{analysis.missSample}} 等），会被忽略</view>
+  <view class="hint">合并只补每题「题目解析」文本，题量、题型与练习记录都不变。</view>
+  <button class="btn" hover-class="hover" style="margin-top:10px" bindtap="onMergeAnalysis">合并解析</button>
+</view>
+
+<view class="card" wx:if="{{step !== 0}}">
+  <view class="step"><text class="n">3</text>校验结果</view>
+  <block wx:if="{{step === 1}}">
+    <view class="ok-line">✓ 校验通过</view>
+    <view class="stat">{{result.count}} 题 · {{result.sizeText}}</view>
+    <view class="stat">题型：{{result.distText}}</view>
+    <view wx:if="{{result.coveredText}}" class="stat">解析：{{result.coveredText}}</view>
+    <view wx:for="{{warns}}" wx:key="*this" class="warn-line">! {{item}}</view>
+    <button class="btn" hover-class="hover" bindtap="onEnable">启用题库</button>
+  </block>
+  <block wx:elif="{{step === 2}}">
+    <view class="err-line">✗ 无法导入{{parseErr ? '' : '，发现 ' + errs.length + ' 处问题'}}</view>
+    <view wx:if="{{parseErr}}" class="err-item">{{parseErr}}</view>
+    <view wx:for="{{errs}}" wx:key="*this" class="err-item">{{item}}</view>
+    <view class="hint">常见原因：JSON 多了尾逗号、用了单引号或中文引号、从 Word 直接复制带了格式。把报错贴给 AI 让它修最快。</view>
+    <view wx:if="{{fbReady}}" class="btn-row" style="margin-top:10px">
+      <button class="btn ghost sm" hover-class="hover" bindtap="onCopyFeedback">复制报错</button>
+      <button wx:if="{{fbCustomer}}" class="btn ghost sm" hover-class="hover" open-type="contact">联系客服</button>
+    </view>
+    <view wx:if="{{fbReady}}" class="hint">先点「复制报错」，再点「联系客服」，进会话后粘贴发送 —— 客服看不到你的报错内容。</view>
+  </block>
+</view>
+

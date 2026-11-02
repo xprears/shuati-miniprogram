@@ -1,3 +1,10 @@
+<view wx:if="{{empty}}" class="card">
+  <view class="card-title">题库为空</view>
+  <view class="muted">还没有导入题库。导入一份题库 JSON，即可设置范围开始练习。</view>
+  <button class="btn sm" style="margin-top:10px" hover-class="hover" bindtap="goImport">去导入题库</button>
+</view>
+
+<block wx:else>
 <view class="card">
   <view class="card-title">练习范围</view>
   <view wx:if="{{isWrong}}" class="muted">当前未掌握清单共 {{poolN}} 题。进入后按顺序重做，答对自动移出。</view>
@@ -20,10 +27,14 @@
 </view>
 
 <view class="card">
-  <view class="card-title">题型</view>
+  <view class="card-title">
+    <text>题型</text>
+    <text class="act" hover-class="hover" bindtap="onTypesAll">全选</text>
+  </view>
   <view class="chip-row">
     <view wx:for="{{types}}" wx:key="key" class="chip {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onTypeTap" data-key="{{item.key}}">{{item.label}}</view>
   </view>
+  <view wx:if="{{!types.length}}" class="muted-2" style="margin-top:8px">题库里没有可练习的题型</view>
 </view>
 
 <view wx:if="{{counts.length}}" class="card">
@@ -35,10 +46,15 @@
 </view>
 
 <view wx:if="{{durs.length}}" class="card">
-  <view class="card-title">考试时长</view>
+  <view class="card-title">测验时长</view>
   <view class="chip-row">
     <view wx:for="{{durs}}" wx:key="n" class="count-pill {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onDurTap" data-n="{{item.n}}">{{item.label}}</view>
   </view>
 </view>
 
-<button class="btn" hover-class="hover" disabled="{{!poolN}}" bindtap="onStart">开始{{modeName}}（{{poolN}} 题）</button>
+<view wx:if="{{tip}}" class="card">
+  <view class="tip-line">{{tip}}</view>
+</view>
+
+<button class="btn" hover-class="hover" disabled="{{!startN}}" bindtap="onStart">开始{{modeName}}（{{startN}} 题）</button>
+</block>

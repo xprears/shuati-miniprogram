@@ -1,30 +1,55 @@
-<view class="card">
-  <view class="card-title">分类管理</view>
-  <view class="muted">点击眼睛图标隐藏/显示章节，隐藏的章节不参与所有练习与考试。每章可直接开始顺序或随机练习。</view>
+<view class="bank-bar" hover-class="hover" bindtap="goManage">
+  <view class="grow">
+    <view class="t">{{empty ? '还没有题库' : (bankName ? bankName : '未命名题库')}}</view>
+    <view class="d">{{empty ? '点击导入题库 JSON，即可按章节练习' : bankInfo + ' · 点击管理'}}</view>
+  </view>
+  <text class="arrow">›</text>
 </view>
 
-<view wx:for="{{parts}}" wx:key="index" class="part-block">
-  <view class="part-name">
+<view wx:if="{{empty}}" class="empty">
+  <view class="ic">▤</view>
+  <view>题库为空</view>
+  <view class="muted-2">导入自己的题库 JSON，或先用示例题库把完整流程走一遍</view>
+  <button class="btn sm" style="margin-top:14px" hover-class="hover" bindtap="goManage">导入题库</button>
+  <button class="btn ghost sm" style="margin-top:8px" hover-class="hover" bindtap="goDemo">试用示例题库</button>
+</view>
+
+<block wx:else>
+<view class="card">
+  <view class="card-title">
+    <text>分类管理</text>
+    <text class="muted-2" hover-class="hover" bindtap="onToggleAll">{{allFolded ? '全部展开' : '全部收起'}}</text>
+  </view>
+  <view class="muted">点大标题可收起整块分类。点右侧「显 / 隐」隐藏或显示章节，隐藏的章节不参与所有练习与测验。每章可直接开始顺序或随机练习。</view>
+</view>
+
+<view wx:for="{{parts}}" wx:key="key" class="part-block">
+  <view class="part-name tap" hover-class="hover" bindtap="onTogglePart" data-key="{{item.key}}">
     <text>{{item.name}}</text>
     <text class="count">{{item.count}} 题</text>
+    <text class="agg">{{item.agg}}</text>
+    <text class="caret">{{item.folded ? '▼' : '▲'}}</text>
   </view>
-  <view wx:for="{{item.chapters}}" wx:for-item="ch" wx:for-index="ci" wx:key="name" class="chapter-row {{ch.hidden ? 'dim' : ''}}">
-    <view class="head">
-      <view class="grow">
-        <view class="t">{{ch.name}}</view>
-        <view class="sub">{{ch.sub}}</view>
+  <block wx:if="{{!item.folded}}">
+    <view wx:for="{{item.chapters}}" wx:for-item="ch" wx:for-index="ci" wx:key="name" class="chapter-row {{ch.hidden ? 'dim' : ''}}">
+      <view class="head">
+        <view class="grow">
+          <view class="t">{{ch.name}}</view>
+          <view class="sub">{{ch.sub}}</view>
+        </view>
+        <view class="eye-btn {{ch.hidden ? 'off' : ''}}" hover-class="hover" bindtap="onEyeTap" data-name="{{ch.name}}">
+          <text>{{ch.hidden ? '隐' : '显'}}</text>
+        </view>
       </view>
-      <view class="eye-btn {{ch.hidden ? 'off' : ''}}" hover-class="hover" bindtap="onEyeTap" data-name="{{ch.name}}">
-        <text>{{ch.hidden ? '隐' : '显'}}</text>
+      <view class="mini-stats">
+        <view>已练 <text class="num">{{ch.done}}/{{ch.count}}</text></view>
+        <view>正确率 <text class="num">{{ch.acc}}</text></view>
+      </view>
+      <view class="chapter-actions">
+        <button class="btn" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="seq">顺序练习</button>
+        <button class="btn ghost" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="rand">随机练习</button>
       </view>
     </view>
-    <view class="mini-stats">
-      <view>已练 <text class="num">{{ch.done}}/{{ch.count}}</text></view>
-      <view>正确率 <text class="num">{{ch.acc}}</text></view>
-    </view>
-    <view class="chapter-actions">
-      <button class="btn" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="seq">顺序练习</button>
-      <button class="btn ghost" hover-class="hover" bindtap="onPracticeTap" data-name="{{ch.name}}" data-mode="rand">随机练习</button>
-    </view>
-  </view>
+  </block>
 </view>
+</block>

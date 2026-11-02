@@ -17,6 +17,14 @@ miniprogram/pkg-feedback/lib/config.js
 .wbapp_*.privacy.json
 .workbuddy/
 .backup-*/
+.genie-backup/
+.genie-backup
+
+# ============================================================
+# 微信开发者工具本地私有配置（含本机路径 / 调试开关）
+# ============================================================
+project.private.config.json
+miniprogram/project.private.config.json
 
 # ============================================================
 # 依赖
@@ -25,14 +33,23 @@ node_modules/
 
 # ============================================================
 # build/ 采用白名单：只放工具链与示例，其余（题库、解析、
-# 截图、调试脚本、一次性脚本）全部忽略
+# 中间产物 HTML、调试脚本、一次性脚本）全部忽略
 # ============================================================
 build/*
 !build/build_bank.js
+!build/build_bank.py
+!build/bank_export.py
 !build/mp-lint.js
+!build/mp-logic-test.js
+!build/mp-practice-regress.js
 !build/gen_prompts.js
+!build/shots/
 !build/sample/
-!build/sample/**
+
+# ============================================================
+# 截图：只留当前版本，历史备份不入库
+# ============================================================
+docs/screenshots/_old-*/
 
 # ============================================================
 # 系统

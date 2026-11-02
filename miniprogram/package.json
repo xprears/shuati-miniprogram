@@ -1,8 +1,5 @@
 {
   "name": "yjtx-miniprogram",
   "version": "1.0.0",
-  "description": "刷题宝 · 题库练习小程序",
-  "dependencies": {
-    "@tencent-ai/workbuddy-cloud-sdk": "^0.1.3-dev.c090db7.202610050023"
-  }
+  "description": "刷题本子 · 题库练习小程序"
 }

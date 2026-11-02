@@ -15,9 +15,6 @@
   <view wx:if="{{selfReview.analysis}}" class="ref-box">
     <view class="rt">题目解析</view>
     <view>{{selfReview.analysis}}</view>
-    <view class="ref-actions">
-      <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{selfReview.qid}}">解析反馈</button>
-    </view>
   </view>
   <view class="row">
     <button class="btn green" hover-class="hover" bindtap="onSelfReviewJudge" data-v="1">✓ 掌握了</button>
@@ -26,7 +23,7 @@
 </block>
 
 <!-- 答题模式 -->
-<block wx:else>
+<block wx:elif="{{q}}">
   <view wx:if="{{isExam}}" class="exam-bar {{examUrgent ? 'urgent' : ''}}">
     <text>剩余时间 {{examLeft}}</text>
   </view>
@@ -38,11 +35,25 @@
       <text wx:if="{{q.category}}" class="tag gray">{{q.category}}</text>
       <text wx:if="{{q.wrongTag}}" class="tag red">{{q.wrongTag}}</text>
     </view>
-    <view class="qstem">{{q.stem}}</view>
+    <view wx:if="{{q.isBlank}}" class="qstem"><text wx:for="{{q.segments}}" wx:key="i" class="{{item.t === 'blank' ? 'blk-mark' : ''}}">{{item.t === 'blank' ? item.mark : item.v}}</text></view>
+    <view wx:else class="qstem">{{q.stem}}</view>
   </view>
 
+  <!-- 填空题：逐空输入。序号与题干里的（1）（2）对应 -->
+  <block wx:if="{{q.isBlank}}">
+    <view wx:for="{{q.blanks}}" wx:key="n" class="blank-row {{item.cls}}">
+      <view class="blank-no">{{item.n}}</view>
+      <input class="blank-ipt" type="text" value="{{item.val}}" data-i="{{index}}"
+             disabled="{{item.locked}}" maxlength="-1" cursor-spacing="32"
+             placeholder="填写第 {{item.n}} 空"
+             bindinput="onBlankInput" bindblur="onBlankBlur" />
+      <view wx:if="{{item.accept}}" class="blank-ans">{{item.accept}}</view>
+    </view>
+    <view wx:if="{{fb === null && feedbackOn}}" class="blank-hint">每个空都要填上才能提交。填错一个字也算错，答完会告诉你每一空的标准答案。</view>
+  </block>
+
   <!-- 客观题选项 -->
-  <block wx:if="{{!q.isSubj}}">
+  <block wx:elif="{{!q.isSubj}}">
     <view wx:for="{{q.options}}" wx:key="key" class="opt {{item.cls}}" hover-class="{{item.hover}}" bindtap="onOption" data-key="{{item.key}}">
       <view class="key">{{item.key}}</view>
       <view class="txt">{{item.text}}</view>
@@ -58,16 +69,11 @@
     <view wx:if="{{showRef && q.analysis}}" class="ref-box">
       <view class="rt">题目解析</view>
       <view>{{q.analysis}}</view>
-      <view class="ref-actions">
-        <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{qid}}">解析反馈</button>
-      </view>
     </view>
     <view class="card">
-      <button class="btn ghost" hover-class="hover" bindtap="onToggleRef">{{showRef ? '收起参考答案' : '查看参考答案'}}</button>
-      <view wx:if="{{feedbackOn}}" class="row" style="margin-top:10px">
-        <button class="btn {{fb === 1 ? 'green' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="1">{{fb === 1 ? '✓ 已掌握' : '标记已掌握'}}</button>
-        <button class="btn {{fb === -1 ? '' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="-1">{{fb === -1 ? '✗ 未掌握' : '标记未掌握'}}</button>
-      </view>
+      <!-- 测验中不给参考答案：主观题在交卷后统一自评，边答边看等于泄题 -->
+      <button wx:if="{{!isExam}}" class="btn ghost" hover-class="hover" bindtap="onToggleRef">{{showRef ? '收起参考答案' : '查看参考答案'}}</button>
+      <view wx:else class="muted" style="text-align:center">测验中不显示参考答案，交卷后进入自评</view>
     </view>
   </block>
 
@@ -77,35 +83,47 @@
     <view>{{fbText}}</view>
   </view>
 
-  <!-- 题目解析（客观题答完即时展示；考试模式与关闭反馈时不展示，避免泄题） -->
+  <!-- 题目解析（客观题答完即时展示；测验模式与关闭反馈时不展示，避免泄题） -->
   <view wx:if="{{feedbackOn && fb !== null && !q.isSubj && q.analysis}}" class="ref-box">
     <view class="rt">题目解析</view>
     <view>{{q.analysis}}</view>
-    <view class="ref-actions">
-      <button class="btn sm ghost" hover-class="hover" bindtap="onFeedback" data-id="{{qid}}">解析反馈</button>
-    </view>
   </view>
 
-  <!-- 底部操作 -->
+  <!-- 题库没带解析：原来整块不渲染，用户以为产品没有解析功能 -->
+  <view wx:if="{{feedbackOn && fb !== null && !q.isSubj && !q.analysis}}" class="ref-box empty" hover-class="hover" bindtap="goAddAnalysis">
+    <view class="rt">这题没有解析</view>
+    <view>解析是随题库一起导入的，题库里没写就没有。去导入页复制「解析提示词」，让 AI 补一份粘回来，会自动合并进现有题库。</view>
+  </view>
+
+  <!-- 单题纠错：题干错字、答案标错只有用户自己看得出来，给一条直改的路 -->
+  <view wx:if="{{fb !== null}}" class="edit-line" hover-class="hover" bindtap="goEdit">题干或答案有误？点这里修正</view>
+
+  <!-- 底部操作：主操作单独一行（下一题最突出），次级操作一小行，退出收在最底部 -->
   <view class="qfoot">
     <button wx:if="{{idx > 1}}" class="btn gray" hover-class="hover" bindtap="onPrev">上一题</button>
     <button wx:if="{{isExam}}" class="btn gray" hover-class="hover" bindtap="onFlag">{{a.flag ? '取消标记' : '标记疑题'}}</button>
-    <button wx:if="{{!q.isSubj && q.options.length && fb === null && feedbackOn && isMulti}}" class="btn" hover-class="hover" disabled="{{!a.sel.length}}" bindtap="submitCurrent">提交答案</button>
-    <button class="btn" hover-class="hover" bindtap="onNext">
-      {{isExam ? (idx >= total ? '交卷' : '下一题') : (fb !== null ? (idx >= total ? '完成练习' : '下一题') : (feedbackOn ? (idx >= total ? '完成' : '跳过') : (idx >= total ? '完成练习' : '下一题')))}}
+    <!-- 填空题不在输入过程中 setData（会跳光标），所以按钮不做实时置灰，未填满时点击给提示 -->
+    <button wx:if="{{feedbackOn && fb === null && !isExam && (isMulti || q.isBlank)}}" class="btn" hover-class="hover" disabled="{{!q.isBlank && !canSubmit}}" bindtap="submitCurrent">提交答案</button>
+    <button class="btn next" hover-class="hover" bindtap="onNext">
+      {{nextBtnText}}
     </button>
   </view>
 
-  <view class="nav-actions">
-    <button class="btn ghost" hover-class="hover" bindtap="onOpenAcard">答题卡（已答 {{acardAnswered}}）</button>
-    <button class="btn gray" hover-class="hover" bindtap="onBackTap">退出练习</button>
+  <!-- 次要操作：答题卡 + 掌握度标记（客观题判分后 / 主观题自评）。不抢主操作视线 -->
+  <view class="mini-actions">
+    <button class="btn sm ghost" hover-class="hover" bindtap="onOpenAcard">答题卡 {{acardAnswered}}/{{total}}</button>
+    <block wx:if="{{canMark}}">
+      <button class="btn sm {{mkM ? 'green' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="1">{{mkM ? '✓ 已掌握' : '标记已掌握'}}</button>
+      <button class="btn sm {{mkU ? 'red' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="-1">{{mkU ? '✗ 未掌握' : '标记未掌握'}}</button>
+    </block>
+    <block wx:if="{{q.isSubj && feedbackOn}}">
+      <button class="btn sm {{fb === 1 ? 'green' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="1">{{fb === 1 ? '✓ 已掌握' : '标记已掌握'}}</button>
+      <button class="btn sm {{fb === -1 ? 'red' : 'gray'}}" hover-class="hover" bindtap="judgeSubjective" data-v="-1">{{fb === -1 ? '✗ 未掌握' : '标记未掌握'}}</button>
+    </block>
   </view>
 
-  <!-- 掌握度标记：紧接答题卡一行（答完即可标记，已掌握降权、未掌握视同错题） -->
-  <view wx:if="{{canMark}}" class="mark-row">
-    <button class="btn {{mkM ? 'green' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="1">{{mkM ? '✓ 已掌握' : '标记已掌握'}}</button>
-    <button class="btn {{mkU ? '' : 'gray'}}" hover-class="hover" bindtap="onMark" data-id="{{qid}}" data-v="-1">{{mkU ? '✗ 未掌握' : '标记未掌握'}}</button>
-  </view>
+  <!-- 退出：危险且低频，放到最底部弱化，避免夹在主操作中间被误触 -->
+  <view class="exit-line" hover-class="hover" bindtap="onBackTap">{{isExam ? '退出测验（计时不暂停）' : '退出练习'}}</view>
 
   <!-- 答题卡浮层 -->
   <view wx:if="{{acardOpen}}" class="acard-mask" bindtap="onCloseAcard">
