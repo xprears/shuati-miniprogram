@@ -13,6 +13,9 @@ const AUTO_OPTIONS = [
 Page({
   data: {
     totalAns: 0,
+    touchedN: 0,
+    bankTotal: 0,
+    touchPct: '-',
     accuracy: '-',
     days: 0,
     streakN: 0,
@@ -88,6 +91,10 @@ Page({
 
     this.setData({
       totalAns: st.totalAns,
+      /* 去重口径进度：累计答题是次数，同一题刷 5 次算 5，看不出题库覆盖了多少 */
+      touchedN: st.touchedN,
+      bankTotal: st.bankTotal,
+      touchPct: st.bankTotal ? logic.pct(st.touchedN, st.bankTotal) : '-',
       accuracy: st.accuracy,
       days: st.days,
       streakN: st.streakN,
@@ -173,6 +180,7 @@ Page({
       bankName: info.name || '',
       fp: info.fp || '',
       ansN: st.totalAns,
+      touched: st.touchedN + '/' + st.bankTotal,
       acc: st.accuracy,
       wrongN: st.wrongN,
       masteredN: st.masteredN,

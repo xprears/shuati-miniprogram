@@ -42,7 +42,7 @@
   <view class="chip-row">
     <view wx:for="{{counts}}" wx:key="n" class="count-pill {{item.on ? 'on' : ''}}" hover-class="hover" bindtap="onCountTap" data-n="{{item.n}}">{{item.label}}</view>
   </view>
-  <view wx:if="{{mode === 'rand'}}" class="muted-2" style="margin-top:10px">随机练习按掌握度加权：未掌握 ×4、没做过 ×2、已掌握 ×1。</view>
+  <view wx:if="{{mode === 'rand'}}" class="muted-2" style="margin-top:10px">按掌握度加权：未掌握 ×4、没做过 ×2、已掌握 ×1；最近做过的题再降为 1/4，避免同一批题反复出现。</view>
 </view>
 
 <view wx:if="{{durs.length}}" class="card">
@@ -56,5 +56,8 @@
   <view class="tip-line">{{tip}}</view>
 </view>
 
-<button class="btn" hover-class="hover" disabled="{{!startN}}" bindtap="onStart">开始{{modeName}}（{{startN}} 题）</button>
+<button class="btn btn-start" hover-class="hover" disabled="{{!startN}}" bindtap="onStart">
+  <text class="btn-l1">开始{{modeName}}</text>
+  <text class="btn-l2">（{{startN}} 题）</text>
+</button>
 </block>

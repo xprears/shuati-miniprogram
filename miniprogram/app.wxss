@@ -60,6 +60,11 @@ button::after { border: none; }
 .btn.gray { background: #EEF1F6; color: var(--text-2); }
 .btn.sm { padding: 8px 14px; font-size: 13.5px; border-radius: 9px; width: auto; }
 .btn[disabled] { opacity: .45; }
+/* 设置页主按钮：题数单独占一行。按钮是 flex 行向，直接塞两个 text 会被排成一行，
+ * 所以这里必须显式改成列向；.btn 没有写死 height，两行不会被裁。 */
+.btn-start { flex-direction: column; gap: 1px; padding: 11px 13px; line-height: 1.35; }
+.btn-l1 { font-size: 15.5px; font-weight: 600; }
+.btn-l2 { font-size: 13px; font-weight: 500; opacity: .82; }
 .row { display: flex; gap: 10px; }
 .row > view { flex: 1; }
 .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 500; background: var(--primary-light); color: var(--primary); }
@@ -79,6 +84,8 @@ button::after { border: none; }
 .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .kv { background: #F7F9FC; border-radius: 11px; padding: 11px 13px; }
 .kv .num { font-size: 17px; font-variant-numeric: tabular-nums; display: block; }
+/* 报告页「已练题数」是 128/1429 这种四位数分数，17px 会挤出格子 */
+.kv .num.kv-num-sm { font-size: 15px; }
 .kv .lbl { font-size: 11.5px; color: var(--text-2); display: block; }
 .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; font-size: 12.5px; }
 .bar-row .name { width: 86px; flex-shrink: 0; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

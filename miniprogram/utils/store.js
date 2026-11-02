@@ -13,6 +13,9 @@ function defaultState() {
     hidden: {},     // chapter -> true
     collapsed: {},  // part -> true       分类页大标题折叠（下次打开沿用）
     qedits: {},     // qid -> {at, before} 单题修改的原值备份，供「还原为原始版本」
+    /* recent：最近做过的题（旧→新）。随机练习据此给「刚做过」的题降温，
+     * 避免同一个池子里反复抽到同一批题。上限见 recentCap()。 */
+    recent: [],
     practice: null, // 进行中的练习会话
     history: [],
     days: {},
@@ -46,7 +49,7 @@ function init() {
     if (raw) {
       var d = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (d && d.v === 1) {
-        ['qs', 'wrong', 'mastered', 'hidden', 'collapsed', 'qedits', 'practice', 'history', 'days', 'streak', 'settings', 'bankFp'].forEach(function (k) {
+        ['qs', 'wrong', 'mastered', 'hidden', 'collapsed', 'qedits', 'recent', 'practice', 'history', 'days', 'streak', 'settings', 'bankFp'].forEach(function (k) {
           if (d[k] !== undefined) S[k] = d[k];
         });
       }
@@ -54,6 +57,7 @@ function init() {
     if (!S.mastered) S.mastered = {};   // 旧存档（无 mastered 字段）兜底
     if (!S.collapsed) S.collapsed = {}; // 旧存档（无 collapsed 字段）兜底
     if (!S.qedits) S.qedits = {};
+    if (!Array.isArray(S.recent)) S.recent = [];   // 旧存档（无 recent 字段）兜底
     /* 旧存档的 settings 里没有 autoMaster：补默认值 2（不能补 0，否则升级后功能悄悄失效） */
     if (S.settings.autoMaster === undefined) S.settings.autoMaster = 2;
   } catch (e) { console.warn('状态读取失败', e); }
@@ -86,6 +90,7 @@ function autoMasterThreshold() {
  * 自动掌握会让用户莫名多出一批「已掌握」；所以测验既不推进 cs，也不自动掌握。
  * cs（连续答对）只在练习模式推进，答错一律清零。 */
 function _recordAnswer(qid, ok, autoMaster) {
+  _touchRecent(qid);   // 做过就进「近期」队列，随机练习据此降温
   var st = S.qs[qid] || (S.qs[qid] = { r: 0, w: 0, last: 0, at: 0 });
   if (ok) st.r++; else st.w++;
   st.last = ok ? 1 : -1;
@@ -163,34 +168,65 @@ function markMastered(qid) {
 function isMastered(qid) { return !!S.mastered[qid]; }
 function masteredCount() { return Object.keys(S.mastered).length; }
 
-/* 抽题权重：未掌握 4 / 未作答 2 / 已掌握 1 */
-function weightOf(qid) {
-  if (S.wrong[qid]) return 4;
-  if (S.mastered[qid]) return 1;
-  return 2;
+/* ---------- 随机抽题 ----------
+ * 基础权重：未掌握 4 / 未作答 2 / 已掌握 1
+ * 近期降温：最近做过的题再乘 0.25 —— 「做过了但还没到自动掌握门槛」的题以前和
+ * 从没见过的题完全等价（weightOf 只看两张标记表、不看时间），一轮接一轮地重复出现。
+ */
+var RECENT_FACTOR = 0.25;
+/* 降温窗口宽度 = 题池的一半（按比例走：库大库小都成立），且不少于本轮题量。
+ * 池 100 抽 50 → 最近 50 道降温；池 3000 抽 50 → 最近 1500 道里的（受队列上限约束）降温。 */
+var RECENT_RATIO = 0.5;
+
+function weightOf(qid, recentSet) {
+  var w = S.wrong[qid] ? 4 : (S.mastered[qid] ? 1 : 2);
+  if (recentSet && recentSet[qid]) w *= RECENT_FACTOR;
+  return w;
 }
 
-/* 加权不放回抽样：按权重把 id 重复投进池子再洗牌去重，权重高的更靠前 */
+/* 队列上限跟着题库规模走，最多 500 条：换大库也不会让存档无限膨胀 */
+function recentCap() {
+  return Math.min(500, Math.max(30, logic.QLIST.length));
+}
+
+/* 记一道「刚做过」的题。已在队列里的先摘掉再补到队尾，
+ * 否则同一道题反复做会把队列占满，把真正久没做的题挤出窗口。 */
+function _touchRecent(qid) {
+  var r = S.recent;
+  var i = r.indexOf(qid);
+  if (i >= 0) r.splice(i, 1);
+  r.push(qid);
+  var cap = recentCap();
+  if (r.length > cap) r.splice(0, r.length - cap);
+}
+
+/* 窗口内「最近做过」的集合。只认当前题池里的 id：
+ * 换库后残留的旧 id 不该白占窗口，否则降温会悄悄失效。 */
+function recentSetOf(ids, n) {
+  var win = Math.max(n || 0, Math.ceil(ids.length * RECENT_RATIO));
+  var inPool = {}, set = {};
+  for (var i = 0; i < ids.length; i++) inPool[ids[i]] = 1;
+  for (var j = Math.max(0, S.recent.length - win); j < S.recent.length; j++) {
+    if (inPool[S.recent[j]]) set[S.recent[j]] = 1;
+  }
+  return set;
+}
+
+/* 加权不放回抽样（Efraimidis-Spirakis A-Res）：每题取 key = random^(1/w)，
+ * 按 key 降序取前 n —— 权重 w 的题入选概率正比于 w。
+ * 原来「按权重重复投袋 → 洗牌 → 去重取前 n」只能表达整数权重，取的是副本的
+ * 最小位置，分布比理论值更偏，也没法给「最近做过」加小数点级的降温。 */
 function weightedPick(ids, n) {
-  var bag = [];
-  for (var i = 0; i < ids.length; i++) {
-    var w = weightOf(ids[i]);
-    for (var k = 0; k < w; k++) bag.push(ids[i]);
-  }
-  var sh = logic.shuffle(bag);
-  var seen = {}, out = [];
-  for (var j = 0; j < sh.length && out.length < n; j++) {
-    if (seen[sh[j]]) continue;
-    seen[sh[j]] = 1;
-    out.push(sh[j]);
-  }
-  // 池子被去重后不足 n（理论上不会，权重≥1 保证 bag ≥ ids），兜底补齐
-  if (out.length < n) {
-    for (var m = 0; m < ids.length && out.length < n; m++) {
-      if (!seen[ids[m]]) { seen[ids[m]] = 1; out.push(ids[m]); }
-    }
-  }
-  return out;
+  if (!ids || !ids.length || n <= 0) return [];
+  var recent = recentSetOf(ids, n);
+  var scored = ids.map(function (id) {
+    var u = Math.random() || 1e-9;   // u=0 时 key 恒为 0，整池会并列
+    return { id: id, k: Math.pow(u, 1 / weightOf(id, recent)) };
+  });
+  scored.sort(function (a, b) { return b.k - a.k; });
+  var out = scored.slice(0, Math.min(n, ids.length)).map(function (o) { return o.id; });
+  // 抽中之后要打乱：按 key 降序排列会把未掌握题全堆在开头，一眼就看得出抽题顺序
+  return logic.shuffle(out);
 }
 
 /* ---------- 练习会话 ---------- */
@@ -402,6 +438,7 @@ function reconcileBank() {
   S.bankFp = cur;
   pruneGhosts();
   S.practice = null;                        // 进行中的会话属于旧题库，题号已对不上
+  S.recent = [];                            // 近期队列同理：旧题库的 id 对新库毫无意义
   save();
   return changed ? 'changed' : 'same';
 }
@@ -443,12 +480,16 @@ function currentStreak() {
  * 没有题库就没有练习统计——归零，而不是显示上一套题库的数字。 */
 function stats() {
   var noBank = !logic.QLIST.length;
-  var totalAns = 0, totalRight = 0;
+  var totalAns = 0, totalRight = 0, touchedN = 0;
   if (!noBank) {
     Object.keys(S.qs).forEach(function (id) {
       if (!logic.QMAP[id]) return;
-      totalAns += S.qs[id].r + S.qs[id].w;
-      totalRight += S.qs[id].r;
+      var rec = S.qs[id];
+      totalAns += rec.r + rec.w;
+      totalRight += rec.r;
+      /* 去重口径：真正作答过（r+w>0）才算「练过这道题」。
+       * 只被塞进「未掌握」但一次没答的不算，否则分母会被清空的旧记录抬高。 */
+      if (rec.r + rec.w > 0) touchedN++;
     });
   }
   function inBank(table) {
@@ -457,6 +498,9 @@ function stats() {
   return {
     noBank: noBank,
     totalAns: totalAns,
+    /* touchedN/bankTotal：去重后的练习进度，totalAns 是次数口径，两者不可互相推导 */
+    touchedN: touchedN,
+    bankTotal: noBank ? 0 : logic.QLIST.length,
     accuracy: totalAns ? logic.pct(totalRight, totalAns) + '%' : '-',
     days: noBank ? 0 : Object.keys(S.days).length,
     streakN: noBank ? 0 : currentStreak(),

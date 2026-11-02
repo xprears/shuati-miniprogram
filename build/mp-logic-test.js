@@ -313,6 +313,36 @@ function freshStore(keepStorage) {
     const edge = bigPool.slice(0, Math.min(7, bigPool.length));
     ok(store.weightedPick(edge, 50).length === edge.length, '池子不足时返回全部');
 
+    /* 近期降温：刚做过的一轮题，下一轮必须明显避开。
+       原来 weightOf 只看两张标记表、不看时间，「做过了但没到自动掌握门槛」的题
+       和从没见过的题概率完全一样，才会出现同一批题连着几轮反复抽到。 */
+    const bakWrong = store.S.wrong, bakMastered = store.S.mastered;
+    store.S.wrong = {}; store.S.mastered = {}; store.S.recent = [];
+    /* 用合成 id，不依赖当前题库的题型数量：weightedPick 只认 id 字符串，
+       没有标记记录的 id 权重一律为 2，正好是「做过了但没被标记」那批题。 */
+    const heat = [];
+    for (let i = 0; i < 80; i++) heat.push('h' + i);
+    if (heat.length >= 40) {
+      const HN = 20, HR = 60;
+      let ovCold = 0, ovWarm = 0;
+      for (let i = 0; i < HR; i++) {
+        store.S.recent = [];
+        const a = store.weightedPick(heat, HN);
+        const cold = store.weightedPick(heat, HN);            // 不带近期记录
+        ovCold += cold.filter(id => a.indexOf(id) >= 0).length;
+        store.S.recent = a.slice();                          // 当作刚做完的一轮
+        const warm = store.weightedPick(heat, HN);
+        ovWarm += warm.filter(id => a.indexOf(id) >= 0).length;
+      }
+      const cAvg = ovCold / HR, wAvg = ovWarm / HR;
+      ok(wAvg < cAvg * 0.8, '近期做过的题降权生效（相邻两轮重合明显下降）',
+        '有降温 ' + wAvg.toFixed(1) + ' vs 无 ' + cAvg.toFixed(1) + ' / 满分 ' + HN);
+    } else {
+      skip('近期降温有效', '判断题仅 ' + heat.length + ' 道，需 ≥40 才有统计意义');
+    }
+    store.S.wrong = bakWrong; store.S.mastered = bakMastered; store.S.recent = [];
+
+
     // 考试模式不加权（公平随机）
     store.ui.setupCount = 20;
     store.startPractice('exam', bigPool);
@@ -333,6 +363,18 @@ function freshStore(keepStorage) {
     const store4 = freshStore(true);
     store4.init();
     ok(store4.S.mastered && typeof store4.S.mastered === 'object', '旧存档缺 mastered 时兜底为空对象');
+    ok(Array.isArray(store4.S.recent), '旧存档缺 recent 时兜底为空数组');
+
+    /* 近期队列自身的行为：答过的进队列、重复答只占一份、换库清空 */
+    store.S.recent = [];
+    const rq = logic.QLIST[0].id;
+    store.recordAnswer(rq, true);
+    ok(store.S.recent[store.S.recent.length - 1] === rq, '答过的题进近期队列', store.S.recent.slice(-1).join(''));
+    store.recordAnswer(rq, true);
+    ok(store.S.recent.filter(id => id === rq).length === 1, '重复答同一题在队列里只占一份',
+      '共 ' + store.S.recent.length + ' 条');
+    const cap = Math.min(500, Math.max(30, logic.QLIST.length));
+    ok(store.S.recent.length <= cap, '近期队列不超过规模上限 ' + cap, '当前 ' + store.S.recent.length + ' 条');
   }
 
   /* ===== 10. 题库导入：bank-validate / bank-store / logic.reload ===== */
@@ -479,6 +521,11 @@ function freshStore(keepStorage) {
     'stats：幽灵 id 不计入（totalAns=' + st1.totalAns + '）', st1.accuracy);
   ok(st1.wrongN === 1 && st1.masteredN === 0, 'stats：未掌握/已掌握只算库内题',
     st1.wrongN + '/' + st1.masteredN);
+  /* touchedN 是去重口径：q0001 答过（r2w1）算 1；q0002 只在 wrong 里、没答过不算；
+   * ghostX 是旧库幽灵 id，不计入。分母取库内题量，不是 totalAns。 */
+  ok(st1.touchedN === 1 && st1.bankTotal === bank2.length,
+    'stats：已练题数去重且排除幽灵 id（' + st1.touchedN + '/' + st1.bankTotal + '）',
+    'totalAns=' + st1.totalAns);
 
   ok(store11.reconcileBank() === 'same' && !!store11.S.qs.q0001, 'reconcileBank：同一题库重复对账为 same 且不动记录');
   bankStore.clear();
@@ -490,6 +537,8 @@ function freshStore(keepStorage) {
   const st0 = store11.stats();
   ok(st0.noBank && st0.totalAns === 0 && st0.wrongN === 0 && st0.streakN === 0 && st0.examN === 0,
     'stats：空态全部归零，不显示上一套题库的数字', JSON.stringify(st0));
+  ok(st0.touchedN === 0 && st0.bankTotal === 0, 'stats：空态已练题数同为 0/0（不是 -/-）',
+    st0.touchedN + '/' + st0.bankTotal);
 
   ok(store11.hasStats(), 'hasStats：识别出练习痕迹');
   store11.resetStats();

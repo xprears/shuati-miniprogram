@@ -2,6 +2,7 @@
   <view class="card-title"><text>练习总览</text><text wx:if="{{bankName}}" class="muted-2">{{bankName}}</text></view>
   <view class="kv-grid">
     <view class="kv"><view class="num">{{totalAns}}</view><view class="lbl">累计答题</view></view>
+    <view class="kv"><view class="num kv-num-sm">{{touchedN}}/{{bankTotal}}</view><view class="lbl">已练题数 · {{touchPct}}%</view></view>
     <view class="kv"><view class="num">{{accuracy}}</view><view class="lbl">总正确率</view></view>
     <view class="kv"><view class="num">{{days}}</view><view class="lbl">练习天数</view></view>
     <view class="kv"><view class="num">{{streakN}} 天</view><view class="lbl">连续打卡</view></view>

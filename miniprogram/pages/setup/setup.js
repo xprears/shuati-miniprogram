@@ -69,10 +69,19 @@ Page({
     /* 开始按钮的题量 = 实际抽题数，不是题池总数（原来选 20 题时按钮写着「60 题」）。
        题量选项只留「小于题池」的固定档 + 题池总数（标「全部」）并去重：
        原来 20/50/100 都 ≥ 题池时统统标成「全部」，7 题的库会出现 4 个「全部」。 */
+    /* 题量档位：固定档 20/50/100 给「今天想做二十题」这种明确目标，再补比例档
+       10% / 25%（大题库里固定档太少：3000 题抽 50 连 2% 都不到）。比例档只在
+       池 ≥ 100 时出现，小题库再加只会挤出一堆没意义的数字。最后补「全部」。 */
     let counts = [], startN = pool.length;
     if (pool.length && (this.data.mode === 'rand' || isExam)) {
-      const base = [20, 50, 100].filter(n => n < pool.length).concat([pool.length]);
-      const uniq = base.filter((n, i, a) => a.indexOf(n) === i).sort((x, y) => x - y);
+      const base = [20, 50, 100].filter(n => n < pool.length);
+      if (pool.length >= 100) {
+        [0.1, 0.25].forEach(r => {
+          const n = Math.round(pool.length * r / 10) * 10;   // 取整到十位，不出现「137 题」这种档
+          if (n > 0 && n < pool.length) base.push(n);
+        });
+      }
+      const uniq = base.concat([pool.length]).filter((n, i, a) => a.indexOf(n) === i).sort((x, y) => x - y);
       if (uniq.indexOf(store.ui.setupCount) < 0) store.ui.setupCount = uniq[uniq.length - 1];
       counts = uniq.map(n => ({ n: n, label: n === pool.length ? '全部' : n + '题', on: store.ui.setupCount === n }));
       startN = Math.min(store.ui.setupCount, pool.length);

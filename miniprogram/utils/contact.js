@@ -43,6 +43,7 @@ function ready() {
  *   bankName   题库名
  *   fp         题库指纹（只取前 8 位，能确认是不是同一套库）
  *   ansN / acc 累计答题数 / 正确率
+ *   touched    去重后的练习进度（"128/1429"），看得出到底覆盖了多少题
  *   wrongN     未掌握数
  *   masteredN  已掌握数
  *   examN      测验场次
@@ -64,6 +65,7 @@ function buildTemplate(ctx) {
 
   const stat = [];
   if (ctx.ansN !== undefined) stat.push('已答 ' + ctx.ansN + ' 题');
+  if (ctx.touched) stat.push('已练 ' + ctx.touched);
   if (ctx.acc) stat.push('正确率 ' + ctx.acc);
   if (ctx.wrongN !== undefined) stat.push('未掌握 ' + ctx.wrongN);
   if (ctx.masteredN !== undefined) stat.push('已掌握 ' + ctx.masteredN);
