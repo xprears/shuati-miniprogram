@@ -11,18 +11,27 @@
 
 .hint { color: var(--text-2); font-size: 12.5px; line-height: 1.6; margin-top: 8px; }
 
-.opt-edit { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+/* 选项与填空行：align-items 必须是 flex-start —— 选项改成多行 textarea 后，
+   center 会让 A 标和删除按钮跑到长文本的垂直中间去。 */
+.opt-edit { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
 .opt-edit .key {
   width: 27px; height: 27px; border-radius: 7px; background: #F0F3F8; flex-shrink: 0;
+  margin-top: 4px;
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 700; color: var(--text-2);
 }
+/* 选项文字可能很长（一整个长句），单行 input 只能看到开头一段 ⇒ 用 auto-height 的
+   textarea 让它换行撑高，整段都能看到。 */
 .opt-edit .ipt {
-  flex: 1; min-width: 0; background: #F7F9FC; border: 1px solid var(--line);
-  border-radius: 8px; padding: 7px 10px; font-size: 14px;
+  flex: 1; min-width: 0; min-height: 35px; background: #F7F9FC; border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 14px; line-height: 1.45;
+  box-sizing: border-box; word-break: break-all; width: 100%;
 }
+/* 填空题答案是短词，还用小 input：auto-height 的 textarea 会把它撑成多行框 */
+.opt-edit.blank-edit .ipt { min-height: 0; }
 .opt-edit .del {
   width: 27px; height: 27px; border-radius: 7px; background: var(--red-bg); color: var(--red);
+  margin-top: 4px;
   display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
 }
 .opt-edit .del.hover { opacity: .7; }

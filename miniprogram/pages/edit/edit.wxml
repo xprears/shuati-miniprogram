@@ -15,7 +15,7 @@
       <view class="card-title">选项</view>
       <view wx:for="{{options}}" wx:key="key" class="opt-edit">
         <view class="key">{{item.key}}</view>
-        <input class="ipt" value="{{item.text}}" bindinput="onOptionInput" data-i="{{index}}" maxlength="-1" placeholder="选项文字" />
+        <textarea class="ipt" value="{{item.text}}" bindinput="onOptionInput" data-i="{{index}}" maxlength="-1" auto-height disable-default-padding="{{true}}" placeholder="选项文字" />
         <view wx:if="{{options.length > 2}}" class="del" hover-class="hover" bindtap="onRemoveOption" data-i="{{index}}">×</view>
       </view>
       <button wx:if="{{options.length < 8}}" class="btn ghost sm" hover-class="hover" style="margin-top:4px" bindtap="onAddOption">+ 增加选项</button>
@@ -37,7 +37,7 @@
   <block wx:elif="{{isBlank}}">
     <view class="card">
       <view class="card-title">每空答案 <text class="muted-2">共 {{blankN}} 个空</text></view>
-      <view wx:for="{{blanks}}" wx:key="n" class="opt-edit">
+      <view wx:for="{{blanks}}" wx:key="n" class="opt-edit blank-edit">
         <view class="key">{{item.n}}</view>
         <input class="ipt" value="{{item.val}}" bindinput="onBlankAnswer" data-i="{{index}}" maxlength="-1" placeholder="第 {{item.n}} 空的答案" />
       </view>

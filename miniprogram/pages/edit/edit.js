@@ -85,11 +85,14 @@ Page({
   onRef(e) { this.draft.reference = e.detail.value || ''; this.armGuard(); },
   onAnalysis(e) { this.draft.analysis = e.detail.value || ''; this.armGuard(); },
 
+  /* 选项文字可能是一整句，输入框是 auto-height 的 textarea。逐字符 setData 会把
+     textarea 重建、光标跳到末尾，所以输入过程只写内存 this.opts；
+     data.options 只在结构变化（增删选项、改答案、还原）时同步。
+     ⇒ 保存时必须读 this.opts，不能读 this.data.options。 */
   onOptionInput(e) {
     const i = Number(e.currentTarget.dataset.i);
     if (!this.opts[i]) return;
     this.opts[i].text = e.detail.value || '';
-    this.setData({ options: this.markAnswer(this.data.answer) });
     this.armGuard();
   },
 
@@ -202,7 +205,7 @@ Page({
       stem: String(d.stem || '').trim(),
       part: this.part,
       chapter: this.chapter,
-      options: (isSubj || isBlank) ? null : this.data.options.map(o => ({ key: o.key, text: String(o.text || '').trim() })),
+      options: (isSubj || isBlank) ? null : this.opts.map(o => ({ key: o.key, text: String(o.text || '').trim() })),
       answer: (isSubj || isBlank) ? null : (this.data.answer || ''),
       blanks: isBlank ? this.blanks.slice(0, nBlank).map(x => String(x == null ? '' : x).trim()) : null,
       reference: String(d.reference || '').trim() || null,
