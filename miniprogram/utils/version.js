@@ -11,7 +11,7 @@
  * BASE_VERSION 必须与 miniprogram/package.json 的 version 一致，
  * build/mp-lint.js 第 9 项会校验，不一致直接失败。
  */
-const BASE_VERSION = '1.0.0';
+const BASE_VERSION = '1.1.0';
 
 const ENV_LABEL = { develop: '开发版', trial: '体验版', release: '正式版' };
 
@@ -31,7 +31,7 @@ function appVersion() {
   return runtime().version || BASE_VERSION;
 }
 
-/* 带环境标注，给反馈模板用：'1.0.1 · 正式版' / '1.0.0 · 开发版' */
+/* 带环境标注，给反馈模板用：'1.1.0 · 正式版' / '1.1.0 · 开发版' */
 function appVersionLabel() {
   const r = runtime();
   const label = ENV_LABEL[r.env] || '';
